@@ -1,0 +1,20 @@
+{
+  "string": [
+    {
+      "name": "EntryAbility_label",
+      "value": "Home Assistant助手"
+    },
+    {
+      "name": "importAccount",
+      "value": "导入账号"
+    },
+    {
+      "name": "DISTRIBUTED_DATASYNC_reason",
+      "value": "用于设备间同步账号数据。"
+    },
+    {
+      "name": "WRITE_PASTEBOARD_reason",
+      "value": "用于写入数据到剪贴板，便于在外部环境使用。"
+    }
+  ]
+}
