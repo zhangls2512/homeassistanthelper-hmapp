@@ -1,4 +1,5 @@
 import { common } from '@kit.AbilityKit'
+import { read } from '../common/File'
 import { haRequest } from '../common/Request'
 
 interface LogItem {
@@ -12,15 +13,27 @@ interface LogItem {
 export default struct Log {
   @Local logs: LogItem[] = []
   @Local loading: boolean = false
+  @Local parameter: Record<string, Record<string, string>> = {}
   context = this.getUIContext().getHostContext() as common.UIAbilityContext
 
   async get() {
     this.loading = true
-    const res = await haRequest(this.context, 'logbook', 'GET')
-    this.loading = false
+    const res = await read(this.context.filesDir + '/parameter.txt', true)
     if (res !== 'fail') {
-      this.logs = JSON.parse(res)
+      this.parameter = JSON.parse(res)
     }
+    const resa = await haRequest(this.context, 'logbook', 'GET')
+    this.loading = false
+    if (resa !== 'fail') {
+      this.logs = JSON.parse(resa)
+    }
+  }
+
+  getValue(key: string, value: string) {
+    if (!this.parameter[key] || !this.parameter[key][value]) {
+      return value
+    }
+    return this.parameter[key][value]
   }
 
   build() {
@@ -53,7 +66,7 @@ export default struct Log {
                     .margin({
                       right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                     })
-                  Text(item.entity_id)
+                  Text(this.getValue('entityid', item.entity_id))
                     .fontColor($r('sys.color.font_secondary'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .layoutWeight(1)
@@ -73,7 +86,7 @@ export default struct Log {
                     .margin({
                       right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                     })
-                  Text(item.name)
+                  Text(this.getValue('name', item.name))
                     .fontColor($r('sys.color.font_secondary'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .layoutWeight(1)
@@ -93,7 +106,7 @@ export default struct Log {
                     .margin({
                       right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                     })
-                  Text(item.state)
+                  Text(this.getValue('state', item.state))
                     .fontColor($r('sys.color.font_secondary'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .layoutWeight(1)

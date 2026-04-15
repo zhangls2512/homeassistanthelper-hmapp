@@ -26,6 +26,7 @@ import { clearNouseData } from '../common/Clearnousedata'
 import { write } from '../common/File'
 import { getCurrentNetworkBearerType } from '../common/Network'
 import openLink from '../common/Openlink'
+import { downloadParameter } from '../common/Parameter'
 import { getFlushPreference, getTempPreference, setTempPreference } from '../common/Preference'
 
 export interface JsErrorObject {
@@ -432,6 +433,11 @@ export default class EntryAbility extends UIAbility {
     await this.appInit(want)
     await clearNouseData(this.context)
     await generateBestAddress(this.context)
+    const downloadParameterAfterAppLaunch =
+      getFlushPreference(this.context, 'commonSetting', 'downloadParameterAfterAppLaunch', true)
+    if (downloadParameterAfterAppLaunch) {
+      await downloadParameter(this.context)
+    }
   }
 
   async onNewWant(want: Want) {

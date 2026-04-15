@@ -1,8 +1,10 @@
 import { common } from '@kit.AbilityKit'
-import { display, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
+import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
+import { read } from '../common/File'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
+import Servicecall from './Servicecall'
 
 interface Attributes {
   friendly_name: string
@@ -14,38 +16,83 @@ interface StateItem {
   attributes: Attributes
 }
 
-interface ServiceItem {
+interface Service {
+  fields: Record<string, Param>
+}
+
+interface Param {
+  example: string | number,
+  required: boolean,
+  selector: Record<string, Selector>
+}
+
+interface Selector {
+  multiline: boolean,
+  multiple: boolean
+}
+
+export interface ServiceItem {
   domain: string,
-  services: object
+  services: Record<string, Service>
 }
 
 @ComponentV2
 export default struct Home {
+  @Provider() isShowServicecallSheet: boolean = false
   @Local selectedIndex: number = 0
   @Local states: StateItem[] = []
   @Local services: ServiceItem[] = []
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
+  @Local hoverId: string = ''
+  @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
+  callServices: ServiceItem = {
+    domain: '',
+    services: {}
+  }
+  callService = ''
+  title = ''
 
   async get(refresh: number = 2) {
     this.isLogin = await getLoginStatus(this.context)
     if (this.isLogin) {
+      const res = await read(this.context.filesDir + '/parameter.txt', true)
+      if (res !== 'fail') {
+        this.parameter = JSON.parse(res)
+      }
       if (refresh !== 1) {
+        this.states = []
         const stateres = await haRequest(this.context, 'states', 'GET')
         if (stateres !== 'fail') {
           this.states = JSON.parse(stateres)
         }
       }
       if (refresh !== 0) {
+        this.services = []
         const serviceres = await haRequest(this.context, 'services', 'GET')
         if (serviceres !== 'fail') {
           this.services = JSON.parse(serviceres)
         }
       }
     }
+  }
+
+  getValue(key: string, value: string) {
+    if (!this.parameter[key] || !this.parameter[key][value]) {
+      return value
+    }
+    return this.parameter[key][value]
+  }
+
+  @Builder
+  ServicecallSheetBuilder() {
+    Servicecall({
+      services: this.callServices,
+      service: this.callService
+    })
   }
 
   build() {
@@ -93,7 +140,7 @@ export default struct Home {
                           .margin({
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
-                        Text(item.entity_id)
+                        Text(this.getValue('entityid', item.entity_id))
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
                           .layoutWeight(1)
@@ -133,7 +180,7 @@ export default struct Home {
                           .margin({
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
-                        Text(item.state)
+                        Text(this.getValue('state', item.state))
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
                           .layoutWeight(1)
@@ -176,29 +223,84 @@ export default struct Home {
                   })
                   .width('100%')
                 }
-                ForEach(this.services, (item: ServiceItem) => {
+                ForEach(this.services, (item: ServiceItem, index) => {
                   ListItem() {
                     Column() {
                       Row() {
-                        Text(item.domain)
+                        Text(this.getValue('domain', item.domain))
                           .fontWeight(FontWeight.Medium)
                       }
                       .borderRadius(12)
                       .padding(12)
+                      .width('100%')
 
-                      ForEach(Object.keys(item.services), (serviceItem: string) => {
+                      ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
                         Divider()
                           .padding({
                             left: 12,
                             right: 12
                           })
                         Row() {
-                          Text(serviceItem)
+                          Text(this.getValue('service', serviceItem))
                             .fontColor($r('sys.color.font_secondary'))
                             .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                            .layoutWeight(1)
+                            .margin({
+                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                            })
+                          Image($r('app.media.right'))
+                            .fillColor($r('sys.color.icon_fourth'))
+                            .height(12)
+                            .width(12)
                         }
                         .borderRadius(12)
                         .padding(12)
+                        .stateStyles({
+                          normal: {
+                            .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
+                              $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                          },
+                          pressed: {
+                            .backgroundColor($r('sys.color.interactive_pressed'))
+                          }
+                        })
+                        .onHover((isHover) => {
+                          if (!isHover) {
+                            this.hoverId = ''
+                          }
+                          if (isHover) {
+                            this.hoverId = index + ',' + serviceIndex
+                          }
+                        })
+                        .onClick(async () => {
+                          if (Object.keys(item.services[serviceItem].fields).length === 0) {
+                            const dialogControllerProgress = new CustomDialogController({
+                              builder: LoadingDialog({
+                                content: '请求中...'
+                              })
+                            })
+                            dialogControllerProgress.open()
+                            const res =
+                              await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST')
+                            dialogControllerProgress.close()
+                            if (res !== 'fail') {
+                              await promptAction.openToast({
+                                message: '服务调用成功'
+                              })
+                            }
+                          } else {
+                            this.callServices = item
+                            this.callService = serviceItem
+                            this.title = this.getValue('service', serviceItem) + item.domain
+                            this.isShowServicecallSheet = true
+                          }
+                        })
+                        .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
+                          preferType: this.preferType,
+                          title: {
+                            title: this.title
+                          }
+                        })
                       })
                     }
                     .backgroundColor($r('sys.color.comp_background_primary'))
