@@ -20,7 +20,7 @@ interface Service {
   fields: Record<string, Param>
 }
 
-interface Param {
+export interface Param {
   example: string | number,
   required: boolean,
   selector: Record<string, Selector>
@@ -28,10 +28,15 @@ interface Param {
 
 interface Selector {
   multiline: boolean,
-  multiple: boolean
+  multiple: boolean,
+  mode: string,
+  min: number,
+  max: number,
+  step: number | 'any',
+  options: string[]
 }
 
-export interface ServiceItem {
+interface ServiceItem {
   domain: string,
   services: Record<string, Service>
 }
@@ -49,11 +54,8 @@ export default struct Home {
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
-  callServices: ServiceItem = {
-    domain: '',
-    services: {}
-  }
-  callService = ''
+  fields: Record<string, Param> = {}
+  path = ''
   title = ''
 
   async get(refresh: number = 2) {
@@ -90,8 +92,8 @@ export default struct Home {
   @Builder
   ServicecallSheetBuilder() {
     Servicecall({
-      services: this.callServices,
-      service: this.callService
+      fields: this.fields,
+      path: this.path
     })
   }
 
@@ -264,7 +266,7 @@ export default struct Home {
                             .backgroundColor($r('sys.color.interactive_pressed'))
                           }
                         })
-                        .onHover((isHover) => {
+                        .onHover(isHover => {
                           if (!isHover) {
                             this.hoverId = ''
                           }
@@ -289,16 +291,10 @@ export default struct Home {
                               })
                             }
                           } else {
-                            this.callServices = item
-                            this.callService = serviceItem
-                            this.title = this.getValue('service', serviceItem) + item.domain
+                            this.fields = item.services[serviceItem].fields
+                            this.path = 'services/' + item.domain + '/' + serviceItem
+                            this.title = this.getValue('service', serviceItem) + this.getValue('domain', item.domain)
                             this.isShowServicecallSheet = true
-                          }
-                        })
-                        .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
-                          preferType: this.preferType,
-                          title: {
-                            title: this.title
                           }
                         })
                       })
@@ -321,6 +317,12 @@ export default struct Home {
             .onRefreshing(async () => {
               await this.get(1)
               this.loading = false
+            })
+            .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
+              preferType: this.preferType,
+              title: {
+                title: this.title
+              }
             })
           }
         }
