@@ -11,7 +11,7 @@ interface DeveloperErrorResponse {
 }
 
 export async function haRequest(context: Context, path: string, method: string,
-  body: rcp.RequestContent): Promise<string> {
+  body?: rcp.RequestContent): Promise<string> {
   const accountInfo = await getAccountInfo(context)
   const session = rcp.createSession({
     requestConfiguration: {
@@ -31,7 +31,7 @@ export async function haRequest(context: Context, path: string, method: string,
     }
   })
   try {
-    const response = await session.fetch(new rcp.Request(accountInfo.path + path, method, {
+    const response = await session.fetch(new rcp.Request(accountInfo.path + '/api/' + path, method, {
       Authorization: 'Bearer ' + accountInfo.token
     }, body))
     session.close()

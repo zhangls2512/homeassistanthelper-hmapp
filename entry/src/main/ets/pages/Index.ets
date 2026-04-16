@@ -162,7 +162,7 @@ struct Index {
         .barWidth(160)
         .scrollable(false)
         .vertical(this.preferType === 0 ? false : true)
-        .onChange((index) => {
+        .onChange(index => {
           this.index = index
         })
         .onAnimationStart((index, targetIndex) => {

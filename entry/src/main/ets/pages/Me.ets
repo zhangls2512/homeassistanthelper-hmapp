@@ -3,6 +3,8 @@ import { display, LoadingDialog, promptAction } from '@kit.ArkUI'
 import { exitAccount, getAccountInfo } from '../common/Account'
 import { getPreferType } from '../common/Prefertype'
 import Accountlist from './Accountlist'
+import Errlog from './ErrLog'
+import Log from './Log'
 import Login from './Login'
 import Setting from './Setting'
 
@@ -10,6 +12,8 @@ import Setting from './Setting'
 export default struct Me {
   @Provider() isShowLoginSheet: boolean = false
   @Provider() isShowAccountlistSheet: boolean = false
+  @Local isShowLogSheet: boolean = false
+  @Local isShowErrlogSheet: boolean = false
   @Local isShowSettingSheet: boolean = false
   @Local preferType: number = 1
   @Local bz: string = ''
@@ -35,6 +39,16 @@ export default struct Me {
   @Builder
   AccountlistSheetBuilder() {
     Accountlist()
+  }
+
+  @Builder
+  LogSheetBuilder() {
+    Log()
+  }
+
+  @Builder
+  ErrlogSheetBuilder() {
+    Errlog()
   }
 
   @Builder
@@ -81,7 +95,7 @@ export default struct Me {
               .backgroundColor($r('sys.color.comp_background_secondary'))
             }
           })
-          .onHover((isHover) => {
+          .onHover(isHover => {
             if (!isHover) {
               this.hoverId = -1
             }
@@ -140,7 +154,7 @@ export default struct Me {
               .backgroundColor($r('sys.color.comp_background_secondary'))
             }
           })
-          .onHover((isHover) => {
+          .onHover(isHover => {
             if (!isHover) {
               this.hoverId = -1
             }
@@ -162,6 +176,128 @@ export default struct Me {
         .padding($r('sys.float.ohos_id_corner_radius_mark'))
       }
 
+      if (this.bz) {
+        ListItem() {
+          Column() {
+            Text('系统')
+              .fontColor($r('sys.color.font_secondary'))
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .fontWeight(FontWeight.Medium)
+              .margin({
+                bottom: 6,
+                left: 12,
+                right: 12
+              })
+            Column() {
+              Row() {
+                Image($r('app.media.log'))
+                  .height(24)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                  .width(24)
+                Text('日志')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Image($r('app.media.right'))
+                  .fillColor($r('sys.color.icon_fourth'))
+                  .height(12)
+                  .width(12)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === 2 ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.comp_background_primary'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.comp_background_secondary'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = 2
+                }
+              })
+              .onClick(() => {
+                this.isShowLogSheet = true
+              })
+              .bindSheet(this.isShowLogSheet!!, this.LogSheetBuilder(), {
+                preferType: this.preferType,
+                title: {
+                  title: '日志'
+                }
+              })
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Image($r('app.media.errorlog'))
+                  .height(24)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                  .width(24)
+                Text('错误日志')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Image($r('app.media.right'))
+                  .fillColor($r('sys.color.icon_fourth'))
+                  .height(12)
+                  .width(12)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.comp_background_primary'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.comp_background_secondary'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = 3
+                }
+              })
+              .onClick(() => {
+                this.isShowErrlogSheet = true
+              })
+              .bindSheet(this.isShowErrlogSheet!!, this.ErrlogSheetBuilder(), {
+                preferType: this.preferType,
+                title: {
+                  title: '错误日志'
+                }
+              })
+            }
+            .backgroundColor($r('sys.color.comp_background_primary'))
+            .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+            .padding($r('sys.float.ohos_id_corner_radius_mark'))
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
+        })
+      }
       ListItem() {
         Column() {
           Row() {
@@ -194,7 +330,7 @@ export default struct Me {
               .backgroundColor($r('sys.color.comp_background_secondary'))
             }
           })
-          .onHover((isHover) => {
+          .onHover(isHover => {
             if (!isHover) {
               this.hoverId = -1
             }
