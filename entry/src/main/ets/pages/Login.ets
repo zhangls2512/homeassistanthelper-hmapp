@@ -63,7 +63,7 @@ export default struct Login {
                 group: 'scheme'
               })
                 .checked(this.scheme === 'https' ? true : false)
-                .onChange((isChecked) => {
+                .onChange(isChecked => {
                   if (isChecked) {
                     this.scheme = 'https'
                     if (!this.port || this.port === '5000') {
@@ -119,7 +119,7 @@ export default struct Login {
                 right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
               })
             TextInput({
-              placeholder: '请输入 token',
+              placeholder: '请输入token',
               text: this.token!!
             })
               .contentType(ContentType.PASSWORD)

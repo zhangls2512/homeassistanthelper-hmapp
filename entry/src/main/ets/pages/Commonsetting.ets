@@ -6,6 +6,7 @@ import { image } from '@kit.ImageKit'
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { hdsMaterial, HdsNavDestination, HdsNavDestinationTitleMode, ScrollEffectType } from '@kit.UIDesignKit'
 import { generateBestAddress } from '../common/Account'
+import { downloadParameter } from '../common/Parameter'
 import { getFlushPreference, setFlushPreference } from '../common/Preference'
 
 @Builder
@@ -27,6 +28,7 @@ struct Commonsetting {
   @Local windowTopmost: boolean = false
   @Local keepScreenOn: boolean = false
   @Local showAccountlistSheetAfterAppLaunch: boolean = false
+  @Local downloadParameterAfterAppLaunch: boolean = true
   @Local checkVersionUpdateIndex: number = 1
   @Local checkVersionUpdateValue: string = '非流量下'
   @Local openLinkTypeIndex: number = 0
@@ -35,6 +37,11 @@ struct Commonsetting {
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   pageInfos = new NavPathStack()
+  dialogControllerProgress = new CustomDialogController({
+    builder: LoadingDialog({
+      content: '请求中...'
+    })
+  })
 
   build() {
     HdsNavDestination() {
@@ -111,7 +118,7 @@ struct Commonsetting {
                   type: ToggleType.Switch,
                   isOn: this.exitAfterContinue!!
                 })
-                  .onChange((isOn) => {
+                  .onChange(isOn => {
                     setFlushPreference(this.context, 'commonSetting', 'exitAfterContinue', isOn)
                   })
               }
@@ -179,7 +186,7 @@ struct Commonsetting {
                   type: ToggleType.Switch,
                   isOn: this.acceptCollaborate!!
                 })
-                  .onChange((isOn) => {
+                  .onChange(isOn => {
                     setFlushPreference(this.context, 'commonSetting', 'acceptCollaborate', isOn)
                   })
               }
@@ -202,7 +209,7 @@ struct Commonsetting {
                   type: ToggleType.Switch,
                   isOn: this.destroyWhenBackPressed!!
                 })
-                  .onChange((isOn) => {
+                  .onChange(isOn => {
                     setFlushPreference(this.context, 'commonSetting', 'destroyWhenBackPressed', isOn)
                   })
               }
@@ -289,7 +296,7 @@ struct Commonsetting {
                   .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
-              .onHover((isHover) => {
+              .onHover(isHover => {
                 if (!isHover) {
                   this.hoverId = -1
                 }
@@ -354,7 +361,7 @@ struct Commonsetting {
                 ])
                   .selected(this.colorModeIndex!!)
                   .value(this.colorModeValue!!)
-                  .onSelect((index) => {
+                  .onSelect(index => {
                     const applicationContext = this.context.getApplicationContext()
                     if (index === 0) {
                       applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET)
@@ -504,7 +511,7 @@ struct Commonsetting {
                   .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
-              .onHover((isHover) => {
+              .onHover(isHover => {
                 if (!isHover) {
                   this.hoverId = -1
                 }
@@ -638,7 +645,7 @@ struct Commonsetting {
                   .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
-              .onHover((isHover) => {
+              .onHover(isHover => {
                 if (!isHover) {
                   this.hoverId = -1
                 }
@@ -647,14 +654,9 @@ struct Commonsetting {
                 }
               })
               .onClick(async () => {
-                const dialogControllerProgress = new CustomDialogController({
-                  builder: LoadingDialog({
-                    content: '请求中...'
-                  })
-                })
-                dialogControllerProgress.open()
+                this.dialogControllerProgress.open()
                 await generateBestAddress(this.context)
-                dialogControllerProgress.close()
+                this.dialogControllerProgress.close()
                 await promptAction.openToast({
                   message: '刷新成功'
                 })
@@ -688,7 +690,7 @@ struct Commonsetting {
                   .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
-              .onHover((isHover) => {
+              .onHover(isHover => {
                 if (!isHover) {
                   this.hoverId = -1
                 }
@@ -735,12 +737,89 @@ struct Commonsetting {
                   type: ToggleType.Switch,
                   isOn: this.showAccountlistSheetAfterAppLaunch!!
                 })
-                  .onChange((isOn) => {
+                  .onChange(isOn => {
                     setFlushPreference(this.context, 'commonSetting', 'showAccountlistSheetAfterAppLaunch', isOn)
                   })
               }
               .borderRadius(12)
               .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('应用启动后下载并更新参数')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Toggle({
+                  type: ToggleType.Switch,
+                  isOn: this.downloadParameterAfterAppLaunch!!
+                })
+                  .onChange(isOn => {
+                    setFlushPreference(this.context, 'commonSetting', 'downloadParameterAfterAppLaunch', isOn)
+                  })
+              }
+              .borderRadius(12)
+              .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('下载并更新参数')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Image($r('app.media.right'))
+                  .fillColor($r('sys.color.icon_fourth'))
+                  .height(12)
+                  .width(12)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.ohos_id_color_card_bg'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.interactive_pressed'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = 3
+                }
+              })
+              .onClick(async () => {
+                this.dialogControllerProgress.open()
+                const res = await downloadParameter(this.context)
+                this.dialogControllerProgress.close()
+                if (res !== 'fail') {
+                  if (!res) {
+                    await promptAction.openToast({
+                      message: '已是最新'
+                    })
+                  }
+                  if (res) {
+                    await promptAction.openToast({
+                      message: '已更新'
+                    })
+                  }
+                }
+              })
 
               Divider()
                 .padding({
@@ -761,7 +840,7 @@ struct Commonsetting {
                 ])
                   .selected(this.checkVersionUpdateIndex!!)
                   .value(this.checkVersionUpdateValue!!)
-                  .onSelect((index) => {
+                  .onSelect(index => {
                     setFlushPreference(this.context, 'commonSetting', 'checkVersionUpdate', index)
                   })
               }
@@ -786,7 +865,7 @@ struct Commonsetting {
                 ])
                   .selected(this.openLinkTypeIndex!!)
                   .value(this.openLinkTypeValue!!)
-                  .onSelect((index) => {
+                  .onSelect(index => {
                     setFlushPreference(this.context, 'commonSetting', 'openLinkType', index)
                   })
               }
@@ -829,15 +908,6 @@ struct Commonsetting {
               mainTitleColor: $r('sys.color.font_primary')
             },
             backIconStyle: {
-              backgroundColor: $r('sys.color.comp_background_color_floating_smooth'),
-              iconColor: $r('sys.color.icon_primary')
-            }
-          }
-        },
-        scrollEffectStyle: {
-          contentStyle: {
-            backIconStyle: {
-              backgroundColor: $r('sys.color.comp_background_color_floating_smooth'),
               iconColor: $r('sys.color.icon_primary')
             }
           }
@@ -882,6 +952,8 @@ struct Commonsetting {
       this.keepScreenOn = lastWindow.getWindowProperties().isKeepScreenOn
       this.showAccountlistSheetAfterAppLaunch =
         getFlushPreference(this.context, 'commonSetting', 'showAccountlistSheetAfterAppLaunch', false) as boolean
+      this.downloadParameterAfterAppLaunch =
+        getFlushPreference(this.context, 'commonSetting', 'downloadParameterAfterAppLaunch', true) as boolean
       const checkVersionUpdate = getFlushPreference(this.context, 'commonSetting', 'checkVersionUpdate', 1)
       this.checkVersionUpdateIndex = checkVersionUpdate as number
       if (checkVersionUpdate === 0) {
