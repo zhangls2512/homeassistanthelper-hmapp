@@ -2,6 +2,7 @@ import { common } from '@kit.AbilityKit'
 import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
+import copy from '../common/Pasteboard'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
@@ -21,7 +22,7 @@ interface Service {
 }
 
 export interface Param {
-  example: string | number,
+  example: string,
   required: boolean,
   selector: Record<string, Selector>
 }
@@ -32,7 +33,7 @@ interface Selector {
   mode: string,
   min: number,
   max: number,
-  step: number | 'any',
+  step: number,
   options: string[]
 }
 
@@ -50,7 +51,7 @@ export default struct Home {
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
-  @Local hoverId: string = ''
+  @Local hoverId: number | string = -1
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -132,7 +133,7 @@ export default struct Home {
                   })
                   .width('100%')
                 }
-                ForEach(this.states, (item: StateItem) => {
+                ForEach(this.states, (item: StateItem, index) => {
                   ListItem() {
                     Column() {
                       Row() {
@@ -142,7 +143,7 @@ export default struct Home {
                           .margin({
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
-                        Text(this.getValue('entityid', item.entity_id))
+                        Text(item.entity_id)
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
                           .layoutWeight(1)
@@ -150,6 +151,26 @@ export default struct Home {
                       }
                       .borderRadius(12)
                       .padding(12)
+                      .stateStyles({
+                        normal: {
+                          .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
+                            $r('sys.color.comp_background_primary'))
+                        },
+                        pressed: {
+                          .backgroundColor($r('sys.color.interactive_pressed'))
+                        }
+                      })
+                      .onHover(isHover => {
+                        if (!isHover) {
+                          this.hoverId = -1
+                        }
+                        if (isHover) {
+                          this.hoverId = index
+                        }
+                      })
+                      .onClick(async () => {
+                        await copy(this.context, this.UIContext, item.entity_id)
+                      })
 
                       Divider()
                         .padding({

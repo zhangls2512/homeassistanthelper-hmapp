@@ -1,5 +1,6 @@
 import { common } from '@kit.AbilityKit'
 import { read } from '../common/File'
+import copy from '../common/Pasteboard'
 import { haRequest } from '../common/Request'
 
 interface LogItem {
@@ -13,8 +14,10 @@ interface LogItem {
 export default struct Log {
   @Local logs: LogItem[] = []
   @Local loading: boolean = false
+  @Local hoverId: number = -1
   @Local parameter: Record<string, Record<string, string>> = {}
-  context = this.getUIContext().getHostContext() as common.UIAbilityContext
+  UIContext = this.getUIContext()
+  context = this.UIContext.getHostContext() as common.UIAbilityContext
 
   async get() {
     this.loading = true
@@ -56,7 +59,7 @@ export default struct Log {
             })
             .width('100%')
           }
-          ForEach(this.logs, (item: LogItem) => {
+          ForEach(this.logs, (item: LogItem, index) => {
             ListItem() {
               Column() {
                 Row() {
@@ -66,7 +69,7 @@ export default struct Log {
                     .margin({
                       right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                     })
-                  Text(this.getValue('entityid', item.entity_id))
+                  Text(item.entity_id)
                     .fontColor($r('sys.color.font_secondary'))
                     .fontSize($r('sys.float.ohos_id_text_size_body2'))
                     .layoutWeight(1)
@@ -74,6 +77,26 @@ export default struct Log {
                 }
                 .borderRadius(12)
                 .padding(12)
+                .stateStyles({
+                  normal: {
+                    .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
+                      $r('sys.color.comp_background_primary'))
+                  },
+                  pressed: {
+                    .backgroundColor($r('sys.color.interactive_pressed'))
+                  }
+                })
+                .onHover(isHover => {
+                  if (!isHover) {
+                    this.hoverId = -1
+                  }
+                  if (isHover) {
+                    this.hoverId = index
+                  }
+                })
+                .onClick(async () => {
+                  await copy(this.context, this.UIContext, item.entity_id)
+                })
 
                 Divider()
                   .padding({
