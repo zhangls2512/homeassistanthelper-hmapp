@@ -308,7 +308,7 @@ export default struct Home {
                             dialogControllerProgress.close()
                             if (res !== 'fail') {
                               await promptAction.openToast({
-                                message: '服务调用成功'
+                                message: '调用成功'
                               })
                             }
                           } else {

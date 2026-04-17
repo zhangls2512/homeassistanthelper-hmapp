@@ -261,7 +261,7 @@ export default struct Servicecall {
             dialogControllerProgress.close()
             if (res !== 'fail') {
               await promptAction.openToast({
-                message: '服务调用成功'
+                message: '调用成功'
               })
               this.isShowServicecallSheet = false
             }
