@@ -18,7 +18,8 @@ interface StateItem {
 }
 
 interface Service {
-  fields: Record<string, Param>
+  fields: Record<string, Param>,
+  target?: object
 }
 
 export interface Param {
@@ -34,7 +35,9 @@ interface Selector {
   min: number,
   max: number,
   step: number,
-  options: string[]
+  options: string[],
+  attribute: string,
+  unit: string
 }
 
 interface ServiceItem {
@@ -55,6 +58,7 @@ export default struct Home {
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
+  target = false
   fields: Record<string, Param> = {}
   path = ''
   title = ''
@@ -71,6 +75,7 @@ export default struct Home {
         const stateres = await haRequest(this.context, 'states', 'GET')
         if (stateres !== 'fail') {
           this.states = JSON.parse(stateres)
+          this.states = this.states.sort((a, b) => a.entity_id.localeCompare(b.entity_id))
         }
       }
       if (refresh !== 0) {
@@ -78,6 +83,7 @@ export default struct Home {
         const serviceres = await haRequest(this.context, 'services', 'GET')
         if (serviceres !== 'fail') {
           this.services = JSON.parse(serviceres)
+          this.services = this.services.sort((a, b) => a.domain.localeCompare(b.domain))
         }
       }
     }
@@ -93,6 +99,7 @@ export default struct Home {
   @Builder
   ServicecallSheetBuilder() {
     Servicecall({
+      target: this.target,
       fields: this.fields,
       path: this.path
     })
@@ -296,22 +303,41 @@ export default struct Home {
                           }
                         })
                         .onClick(async () => {
-                          if (Object.keys(item.services[serviceItem].fields).length === 0) {
-                            const dialogControllerProgress = new CustomDialogController({
-                              builder: LoadingDialog({
-                                content: '请求中...'
-                              })
+                          if (Object.keys(item.services[serviceItem].fields).length === 0 &&
+                            !item.services[serviceItem].target) {
+                            const data = await promptAction.showDialog({
+                              title: '提示',
+                              message: '确定' + this.getValue('service', serviceItem) +
+                                this.getValue('domain', item.domain) + '？',
+                              buttons: [
+                                {
+                                  text: '取消',
+                                  color: $r('sys.color.warning')
+                                },
+                                {
+                                  text: '确定',
+                                  color: $r('sys.color.font_emphasize')
+                                }
+                              ]
                             })
-                            dialogControllerProgress.open()
-                            const res =
-                              await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST')
-                            dialogControllerProgress.close()
-                            if (res !== 'fail') {
-                              await promptAction.openToast({
-                                message: '调用成功'
+                            if (data.index === 1) {
+                              const dialogControllerProgress = new CustomDialogController({
+                                builder: LoadingDialog({
+                                  content: '请求中...'
+                                })
                               })
+                              dialogControllerProgress.open()
+                              const res =
+                                await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST')
+                              dialogControllerProgress.close()
+                              if (res !== 'fail') {
+                                await promptAction.openToast({
+                                  message: '调用成功'
+                                })
+                              }
                             }
                           } else {
+                            this.target = item.services[serviceItem].target ? true : false
                             this.fields = item.services[serviceItem].fields
                             this.path = 'services/' + item.domain + '/' + serviceItem
                             this.title = this.getValue('service', serviceItem) + this.getValue('domain', item.domain)

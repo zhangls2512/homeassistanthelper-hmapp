@@ -113,13 +113,13 @@ export default struct Login {
           })
 
           Row() {
-            Text('token')
+            Text('长期访问令牌')
               .fontWeight(FontWeight.Medium)
               .margin({
                 right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
               })
             TextInput({
-              placeholder: '请输入token',
+              placeholder: '请输入长期访问令牌',
               text: this.token!!
             })
               .contentType(ContentType.PASSWORD)
@@ -177,7 +177,7 @@ export default struct Login {
               }
               if (!this.token) {
                 await promptAction.openToast({
-                  message: '请输入 token'
+                  message: '请输入长期访问令牌'
                 })
                 return
               }
