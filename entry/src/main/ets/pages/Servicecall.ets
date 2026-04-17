@@ -9,10 +9,12 @@ export default struct Servicecall {
   @Consumer() isShowServicecallSheet: boolean = false
   @Param fields: Record<string, Param> = {}
   @Param path: string = ''
-  @Local body: Record<string, string | boolean | number | string[]> = {}
+  @Local body: Record<string, string | boolean | number | string[] | object> = {}
   @Local parameter: Record<string, Record<string, string>> = {}
   context = this.getUIContext().getHostContext() as common.UIAbilityContext
-  supportedSelectors = ['text', 'number', 'boolean', 'select', 'date', 'time', 'datetime']
+  supportedSelectors =
+    ['text', 'number', 'boolean', 'select', 'date', 'time', 'datetime', 'entity', 'config_entry', 'theme', 'object',
+      'statistic', 'state']
 
   getValue(key: string, value: string) {
     if (!this.parameter[key] || !this.parameter[key][value]) {
@@ -42,7 +44,7 @@ export default struct Servicecall {
             Column() {
               ForEach(Object.keys(this.fields[item].selector), (selectorItem: string) => {
                 if (selectorItem === 'text') {
-                  if (!this.fields[item].selector[selectorItem].multiline) {
+                  if (!this.fields[item].selector[selectorItem]) {
                     TextInput({
                       placeholder: this.fields[item].example ? String(this.fields[item].example) : ''
                     })
@@ -51,14 +53,25 @@ export default struct Servicecall {
                         this.body[item] = value
                       })
                   }
-                  if (this.fields[item].selector[selectorItem].multiline) {
-                    TextArea({
-                      placeholder: this.fields[item].example ? String(this.fields[item].example) : ''
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[item] = value
+                  if (this.fields[item].selector[selectorItem]) {
+                    if (!this.fields[item].selector[selectorItem].multiline) {
+                      TextInput({
+                        placeholder: this.fields[item].example ? String(this.fields[item].example) : ''
                       })
+                        .enableAutoSpacing(true)
+                        .onChange(value => {
+                          this.body[item] = value
+                        })
+                    }
+                    if (this.fields[item].selector[selectorItem].multiline) {
+                      TextArea({
+                        placeholder: this.fields[item].example ? String(this.fields[item].example) : ''
+                      })
+                        .enableAutoSpacing(true)
+                        .onChange(value => {
+                          this.body[item] = value
+                        })
+                    }
                   }
                 }
                 if (selectorItem === 'number') {
@@ -184,6 +197,10 @@ export default struct Servicecall {
                         return
                       }
                       const old = this.body[item] as string
+                      if (old.length === 8) {
+                        this.body[item] = data + old
+                        return
+                      }
                       if (old.length === 11) {
                         this.body[item] = data
                         return
@@ -202,7 +219,15 @@ export default struct Servicecall {
                       const data =
                         String(value.hour).padStart(2, '0') + ':' + String(value.minute).padStart(2, '0') + ':' +
                           String(value.second).padStart(2, '0')
+                      if (!this.body[item]) {
+                        this.body[item] = data
+                        return
+                      }
                       const old = this.body[item] as string
+                      if (old.length === 8) {
+                        this.body[item] = data
+                        return
+                      }
                       if (old.length === 11) {
                         this.body[item] = old + data
                         return
@@ -210,6 +235,94 @@ export default struct Servicecall {
                       if (old.length === 19) {
                         this.body[item] = old.slice(0, 11) + data
                       }
+                    })
+                }
+                if (selectorItem === 'entity') {
+                  TextInput({
+                    placeholder: this.fields[item].selector[selectorItem].multiple ? '实体ID数组' : '实体ID'
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      if (!this.fields[item].selector[selectorItem].multiple) {
+                        this.body[item] = value
+                      }
+                      if (this.fields[item].selector[selectorItem].multiple) {
+                        try {
+                          const entityIdArray = JSON.parse(value) as string[]
+                          if (Array.isArray(entityIdArray) &&
+                            entityIdArray.every(entityId => typeof (entityId) === 'string')) {
+                            this.body[item] = entityIdArray
+                          } else {
+                            this.body[item] = ''
+                          }
+                        } catch {
+                          this.body[item] = ''
+                        }
+                      }
+                    })
+                }
+                if (selectorItem === 'config_entry') {
+                  TextInput({
+                    placeholder: this.fields[item].example
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      this.body[item] = value
+                    })
+                }
+                if (selectorItem === 'theme') {
+                  TextInput({
+                    placeholder: this.fields[item].example
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      this.body[item] = value
+                    })
+                }
+                if (selectorItem === 'object') {
+                  TextInput({
+                    placeholder: 'JSON对象'
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      try {
+                        const object = JSON.parse(value) as object
+                        if (value.startsWith('{') && value.endsWith('}')) {
+                          this.body[item] = object
+                        } else {
+                          this.body[item] = ''
+                        }
+                      } catch {
+                        this.body[item] = ''
+                      }
+                    })
+                }
+                if (selectorItem === 'statistic') {
+                  TextInput({
+                    placeholder: '统计ID数组'
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      try {
+                        const statisticIdArray = JSON.parse(value) as string[]
+                        if (Array.isArray(statisticIdArray) &&
+                          statisticIdArray.every(statisticId => typeof (statisticId) === 'string')) {
+                          this.body[item] = statisticIdArray
+                        } else {
+                          this.body[item] = ''
+                        }
+                      } catch {
+                        this.body[item] = ''
+                      }
+                    })
+                }
+                if (selectorItem === 'state') {
+                  TextInput({
+                    placeholder: this.fields[item].example
+                  })
+                    .enableAutoSpacing(true)
+                    .onChange(value => {
+                      this.body[this.fields[item].selector[selectorItem].attribute] = value
                     })
                 }
                 if (!this.supportedSelectors.includes(selectorItem)) {
