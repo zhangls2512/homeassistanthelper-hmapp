@@ -2,6 +2,7 @@ import { promptAction } from '@kit.ArkUI'
 import { rcp } from '@kit.RemoteCommunicationKit'
 import { getAccountInfo } from './Account'
 import { getDnsServer } from './Dnsserver'
+import { write } from './File'
 import { getFlushPreference } from './Preference'
 
 interface DeveloperErrorResponse {
@@ -38,6 +39,10 @@ export async function haRequest(context: Context, path: string, method: string,
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return String(response)
     } else {
+      if (getFlushPreference(context, 'debugSetting', 'saveHttpRequestHaFailLog', false)) {
+        await write(context.filesDir + '/log/httprequesthafail/' + Date.now() + '.txt',
+          response.statusCode + '\n' + path + '\n' + method + '\n' + JSON.stringify(body))
+      }
       await promptAction.openToast({
         message: 'HTTP 请求失败，状态码：' + response.statusCode
       })

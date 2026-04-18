@@ -2,7 +2,6 @@ import { common } from '@kit.AbilityKit'
 import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
-import copy from '../common/Pasteboard'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
@@ -13,8 +12,10 @@ interface Attributes {
 
 interface StateItem {
   entity_id: string,
+  domain: string,
   state: string,
-  attributes: Attributes
+  attributes: Attributes,
+  services: Record<string, Service>
 }
 
 interface Service {
@@ -54,37 +55,47 @@ export default struct Home {
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
-  @Local hoverId: number | string = -1
+  @Local hoverId: string = ''
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   target = false
+  entityId = ''
   fields: Record<string, Param> = {}
   path = ''
   title = ''
 
   async get(refresh: number = 2) {
-    this.isLogin = await getLoginStatus(this.context)
     if (this.isLogin) {
       const res = await read(this.context.filesDir + '/parameter.txt', true)
       if (res !== 'fail') {
         this.parameter = JSON.parse(res)
       }
-      if (refresh !== 1) {
-        this.states = []
-        const stateres = await haRequest(this.context, 'states', 'GET')
-        if (stateres !== 'fail') {
-          this.states = JSON.parse(stateres)
-          this.states = this.states.sort((a, b) => a.entity_id.localeCompare(b.entity_id))
-        }
-      }
-      if (refresh !== 0) {
-        this.services = []
-        const serviceres = await haRequest(this.context, 'services', 'GET')
-        if (serviceres !== 'fail') {
-          this.services = JSON.parse(serviceres)
-          this.services = this.services.sort((a, b) => this.getValue('domain', a.domain)
-            .localeCompare(this.getValue('domain', b.domain)))
+      this.services = []
+      const serviceres = await haRequest(this.context, 'services', 'GET')
+      if (serviceres !== 'fail') {
+        this.services = JSON.parse(serviceres)
+        this.services = this.services.sort((a, b) => this.getValue('domain', a.domain)
+          .localeCompare(this.getValue('domain', b.domain)))
+        if (refresh !== 1) {
+          this.states = []
+          const stateres = await haRequest(this.context, 'states', 'GET')
+          if (stateres !== 'fail') {
+            this.states = JSON.parse(stateres)
+            this.states =
+              this.states.sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
+            this.states = this.states.map((item): StateItem => {
+              const domain = item.entity_id.split('.')[0]
+              const service = this.services.find(serviceItem => serviceItem.domain === domain)
+              return {
+                entity_id: item.entity_id,
+                domain: domain,
+                state: item.state,
+                attributes: item.attributes,
+                services: service ? service.services : {}
+              }
+            })
+          }
         }
       }
     }
@@ -101,6 +112,7 @@ export default struct Home {
   ServicecallSheetBuilder() {
     Servicecall({
       target: this.target,
+      entityId: this.entityId,
       fields: this.fields,
       path: this.path
     })
@@ -127,6 +139,12 @@ export default struct Home {
               bottom: $r('sys.float.ohos_id_elements_margin_vertical_m'),
               top: $r('sys.float.ohos_id_elements_margin_vertical_m')
             })
+            .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
+              preferType: this.preferType,
+              title: {
+                title: this.title
+              }
+            })
           if (this.selectedIndex === 0) {
             Refresh({
               refreshing: $$this.loading
@@ -145,70 +163,10 @@ export default struct Home {
                   ListItem() {
                     Column() {
                       Row() {
-                        Text('实体ID')
-                          .enableAutoSpacing(true)
-                          .fontWeight(FontWeight.Medium)
-                          .margin({
-                            right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                          })
-                        Text(item.entity_id)
-                          .fontColor($r('sys.color.font_secondary'))
-                          .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .layoutWeight(1)
-                          .textAlign(TextAlign.End)
-                      }
-                      .borderRadius(12)
-                      .padding(12)
-                      .stateStyles({
-                        normal: {
-                          .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
-                            $r('sys.color.comp_background_primary'))
-                        },
-                        pressed: {
-                          .backgroundColor($r('sys.color.interactive_pressed'))
-                        }
-                      })
-                      .onHover(isHover => {
-                        if (!isHover) {
-                          this.hoverId = -1
-                        }
-                        if (isHover) {
-                          this.hoverId = index
-                        }
-                      })
-                      .onClick(async () => {
-                        await copy(this.context, this.UIContext, item.entity_id)
-                      })
-
-                      Divider()
-                        .padding({
-                          left: 12,
-                          right: 12
-                        })
-                      Row() {
-                        Text('名称')
-                          .fontWeight(FontWeight.Medium)
-                          .margin({
-                            right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                          })
                         Text(item.attributes.friendly_name)
                           .enableAutoSpacing(true)
-                          .fontColor($r('sys.color.font_secondary'))
-                          .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .layoutWeight(1)
-                          .textAlign(TextAlign.End)
-                      }
-                      .borderRadius(12)
-                      .padding(12)
-
-                      Divider()
-                        .padding({
-                          left: 12,
-                          right: 12
-                        })
-                      Row() {
-                        Text('状态')
                           .fontWeight(FontWeight.Medium)
+                          .layoutWeight(1)
                           .margin({
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
@@ -216,11 +174,105 @@ export default struct Home {
                           .enableAutoSpacing(true)
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .layoutWeight(1)
                           .textAlign(TextAlign.End)
                       }
                       .borderRadius(12)
                       .padding(12)
+
+                      if (item.services) {
+                        ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
+                          Divider()
+                            .padding({
+                              left: 12,
+                              right: 12
+                            })
+                          Row() {
+                            Text(this.getValue('service', serviceItem))
+                              .enableAutoSpacing(true)
+                              .fontColor($r('sys.color.font_secondary'))
+                              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                              .layoutWeight(1)
+                              .margin({
+                                right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                              })
+                            Image($r('app.media.right'))
+                              .fillColor($r('sys.color.icon_fourth'))
+                              .height(12)
+                              .width(12)
+                          }
+                          .borderRadius(12)
+                          .padding(12)
+                          .stateStyles({
+                            normal: {
+                              .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
+                                $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                            },
+                            pressed: {
+                              .backgroundColor($r('sys.color.interactive_pressed'))
+                            }
+                          })
+                          .onHover(isHover => {
+                            if (!isHover) {
+                              this.hoverId = ''
+                            }
+                            if (isHover) {
+                              this.hoverId = index + ',' + serviceIndex
+                            }
+                          })
+                          .onClick(async () => {
+                            const promptAction = this.UIContext.getPromptAction()
+                            if (Object.keys(item.services[serviceItem].fields).length === 0) {
+                              const data = await promptAction.showDialog({
+                                title: '提示',
+                                message: '确定' + this.getValue('service', serviceItem) + '？',
+                                buttons: [
+                                  {
+                                    text: '取消',
+                                    color: $r('sys.color.warning')
+                                  },
+                                  {
+                                    text: '确定',
+                                    color: $r('sys.color.font_emphasize')
+                                  }
+                                ]
+                              })
+                              if (data.index === 1) {
+                                const dialogControllerProgress = new CustomDialogController({
+                                  builder: LoadingDialog({
+                                    content: '请求中...'
+                                  })
+                                })
+                                dialogControllerProgress.open()
+                                let res = ''
+                                if (!item.services[serviceItem].target) {
+                                  res =
+                                    await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST')
+                                }
+                                if (item.services[serviceItem].target) {
+                                  res =
+                                    await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST',
+                                      {
+                                        entity_id: item.entity_id
+                                      })
+                                }
+                                dialogControllerProgress.close()
+                                if (res !== 'fail') {
+                                  await promptAction.openToast({
+                                    message: '调用成功'
+                                  })
+                                }
+                              }
+                            } else {
+                              this.target = item.services[serviceItem].target ? true : false
+                              this.entityId = item.services[serviceItem].target ? item.entity_id : ''
+                              this.fields = item.services[serviceItem].fields
+                              this.path = 'services/' + item.domain + '/' + serviceItem
+                              this.title = this.getValue('service', serviceItem)
+                              this.isShowServicecallSheet = true
+                            }
+                          })
+                        })
+                      }
                     }
                     .backgroundColor($r('sys.color.comp_background_primary'))
                     .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
@@ -308,6 +360,7 @@ export default struct Home {
                           }
                         })
                         .onClick(async () => {
+                          const promptAction = this.UIContext.getPromptAction()
                           if (Object.keys(item.services[serviceItem].fields).length === 0 &&
                             !item.services[serviceItem].target) {
                             const data = await promptAction.showDialog({
@@ -342,6 +395,7 @@ export default struct Home {
                             }
                           } else {
                             this.target = item.services[serviceItem].target ? true : false
+                            this.entityId = ''
                             this.fields = item.services[serviceItem].fields
                             this.path = 'services/' + item.domain + '/' + serviceItem
                             this.title = this.getValue('service', serviceItem)
@@ -369,12 +423,6 @@ export default struct Home {
               await this.get(1)
               this.loading = false
             })
-            .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
-              preferType: this.preferType,
-              title: {
-                title: this.title
-              }
-            })
           }
         }
       }
@@ -392,9 +440,11 @@ export default struct Home {
         }, 200)
       })
       this.context.eventHub.on('refreshHome', async () => {
-        await this.get()
+        this.isLogin = await getLoginStatus(this.context)
+        this.loading = true
       })
-      await this.get()
+      this.isLogin = await getLoginStatus(this.context)
+      this.loading = true
     })
     .onDisAppear(() => {
       this.context.eventHub.off('refreshHome')

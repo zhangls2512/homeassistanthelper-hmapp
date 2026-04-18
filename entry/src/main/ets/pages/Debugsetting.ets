@@ -16,6 +16,7 @@ struct Debugsetting {
   @Local globalErrorShowTypeIndex: number = 0
   @Local globalErrorShowTypeValue: string = 'Toast'
   @Local saveErrorLog: boolean = false
+  @Local saveHttpRequestHaFailLog: boolean = false
   @Local deleteErrorLogBeforeUpdateTimeWhenAppLaunch: boolean = false
   @Local autoUploadErrorLog: boolean = false
   @Local showMemoryLevelChange: boolean = false
@@ -48,6 +49,8 @@ struct Debugsetting {
       this.globalErrorShowTypeValue = 'Dialog'
     }
     this.saveErrorLog = getFlushPreference(this.context, 'debugSetting', 'saveErrorLog', true) as boolean
+    this.saveHttpRequestHaFailLog =
+      getFlushPreference(this.context, 'debugSetting', 'saveHttpRequestHaFailLog', false) as boolean
     this.deleteErrorLogBeforeUpdateTimeWhenAppLaunch =
       getFlushPreference(this.context, 'debugSetting', 'deleteErrorLogBeforeUpdateTimeWhenAppLaunch', true) as boolean
     this.autoUploadErrorLog = getFlushPreference(this.context, 'debugSetting', 'autoUploadErrorLog', true) as boolean
@@ -149,6 +152,30 @@ struct Debugsetting {
                 })
                   .onChange(isOn => {
                     setFlushPreference(this.context, 'debugSetting', 'saveErrorLog', isOn)
+                  })
+              }
+              .borderRadius(12)
+              .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('保存HTTP请求Home Assistant服务器失败日志')
+                  .enableAutoSpacing(true)
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Toggle({
+                  type: ToggleType.Switch,
+                  isOn: this.saveHttpRequestHaFailLog!!
+                })
+                  .onChange(isOn => {
+                    setFlushPreference(this.context, 'debugSetting', 'saveHttpRequestHaFailLog', isOn)
                   })
               }
               .borderRadius(12)
