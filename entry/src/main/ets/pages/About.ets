@@ -184,7 +184,7 @@ struct About {
               Column() {
                 Text('邀请测试')
                   .fontWeight(FontWeight.Medium)
-                Text('https://appgallery.huawei.com/apptest/待补充')
+                Text('https://appgallery.huawei.com/apptest/6EFjlnhZIk5')
                   .fontColor($r('sys.color.font_secondary'))
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .margin({
@@ -222,11 +222,7 @@ struct About {
               }
             })
             .onClick(async () => {
-              await promptAction.openToast({
-                message: '敬请期待'
-              })
-              return
-              await openLink(this.context, 'https://appgallery.huawei.com/apptest/待补充')
+              await openLink(this.context, 'https://appgallery.huawei.com/apptest/6EFjlnhZIk5')
             })
 
             Divider()

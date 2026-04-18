@@ -101,6 +101,7 @@ struct Index {
                 })
             }
             .hideBackButton(true)
+            .mode(NavigationMode.Stack)
             .padding({
               top: 36
             })
@@ -126,6 +127,7 @@ struct Index {
               Me()
             }
             .hideBackButton(true)
+            .mode(NavigationMode.Stack)
             .padding({
               top: 36
             })
