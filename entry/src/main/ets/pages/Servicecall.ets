@@ -31,7 +31,7 @@ export default struct Servicecall {
         ListItem() {
           Row() {
             Text('*')
-              .fontColor(Color.Red)
+              .fontColor($r('sys.color.warning'))
               .fontWeight(FontWeight.Medium)
               .margin({
                 right: $r('sys.float.ohos_id_elements_margin_horizontal_s')
@@ -70,7 +70,7 @@ export default struct Servicecall {
             Row() {
               if (this.fields[item].required) {
                 Text('*')
-                  .fontColor(Color.Red)
+                  .fontColor($r('sys.color.warning'))
                   .fontWeight(FontWeight.Medium)
                   .margin({
                     right: $r('sys.float.ohos_id_elements_margin_horizontal_s')
@@ -458,7 +458,7 @@ export default struct Servicecall {
                   if (!this.supportedSelectors.includes(selectorItem)) {
                     Text('暂不支持输入' + selectorItem + '类型')
                       .enableAutoSpacing(true)
-                      .fontColor(Color.Red)
+                      .fontColor($r('sys.color.warning'))
                   }
                 })
               }
@@ -512,6 +512,7 @@ export default struct Servicecall {
               await promptAction.openToast({
                 message: '调用成功'
               })
+              this.context.eventHub.emit('refreshHome')
               this.isShowServicecallSheet = false
             }
           })
