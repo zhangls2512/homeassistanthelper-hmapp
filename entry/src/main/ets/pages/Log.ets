@@ -63,54 +63,58 @@ export default struct Log {
       ForEach(this.logs, (item: LogItem, index) => {
         ListItem() {
           Column() {
+            if (item.entity_id) {
+              Row() {
+                Text('实体ID')
+                  .enableAutoSpacing(true)
+                  .fontWeight(FontWeight.Medium)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Text(item.entity_id)
+                  .fontColor($r('sys.color.font_secondary'))
+                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                  .layoutWeight(1)
+                  .textAlign(TextAlign.End)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.ohos_id_color_card_bg'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.interactive_pressed'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = index
+                }
+              })
+              .onClick(async () => {
+                await copy(this.context, this.UIContext, item.entity_id)
+              })
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+            }
             Row() {
-              Text('实体ID')
+              Text('名称')
                 .enableAutoSpacing(true)
                 .fontWeight(FontWeight.Medium)
                 .margin({
                   right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                 })
-              Text(item.entity_id)
-                .fontColor($r('sys.color.font_secondary'))
-                .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
-            }
-            .borderRadius(12)
-            .padding(12)
-            .stateStyles({
-              normal: {
-                .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
-                  $r('sys.color.ohos_id_color_card_bg'))
-              },
-              pressed: {
-                .backgroundColor($r('sys.color.interactive_pressed'))
-              }
-            })
-            .onHover(isHover => {
-              if (!isHover) {
-                this.hoverId = -1
-              }
-              if (isHover) {
-                this.hoverId = index
-              }
-            })
-            .onClick(async () => {
-              await copy(this.context, this.UIContext, item.entity_id)
-            })
-
-            Divider()
-              .padding({
-                left: 12,
-                right: 12
-              })
-            Row() {
-              Text('名称')
-                .fontWeight(FontWeight.Medium)
-                .margin({
-                  right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                })
               Text(this.getValue('name', item.name))
+                .enableAutoSpacing(true)
                 .fontColor($r('sys.color.font_secondary'))
                 .fontSize($r('sys.float.ohos_id_text_size_body2'))
                 .layoutWeight(1)
@@ -124,26 +128,29 @@ export default struct Log {
                 left: 12,
                 right: 12
               })
-            Row() {
-              Text('状态')
-                .fontWeight(FontWeight.Medium)
-                .margin({
-                  right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+            if (item.state) {
+              Row() {
+                Text('状态')
+                  .fontWeight(FontWeight.Medium)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Text(this.getValue('state', item.state))
+                  .enableAutoSpacing(true)
+                  .fontColor($r('sys.color.font_secondary'))
+                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                  .layoutWeight(1)
+                  .textAlign(TextAlign.End)
+              }
+              .borderRadius(12)
+              .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
                 })
-              Text(this.getValue('state', item.state))
-                .fontColor($r('sys.color.font_secondary'))
-                .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
             }
-            .borderRadius(12)
-            .padding(12)
-
-            Divider()
-              .padding({
-                left: 12,
-                right: 12
-              })
             Row() {
               Text('时间')
                 .fontWeight(FontWeight.Medium)

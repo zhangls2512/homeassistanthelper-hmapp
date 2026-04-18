@@ -36,6 +36,7 @@ export default struct Servicecall {
                 right: $r('sys.float.ohos_id_elements_margin_horizontal_s')
               })
             Text(this.getValue('field', 'entity_id'))
+              .enableAutoSpacing(true)
               .fontWeight(FontWeight.Medium)
               .margin({
                 right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
@@ -75,6 +76,7 @@ export default struct Servicecall {
                   })
               }
               Text(this.getValue('field', item))
+                .enableAutoSpacing(true)
                 .fontWeight(FontWeight.Medium)
                 .margin({
                   right: $r('sys.float.ohos_id_elements_margin_horizontal_m')

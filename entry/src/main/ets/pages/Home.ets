@@ -83,7 +83,8 @@ export default struct Home {
         const serviceres = await haRequest(this.context, 'services', 'GET')
         if (serviceres !== 'fail') {
           this.services = JSON.parse(serviceres)
-          this.services = this.services.sort((a, b) => a.domain.localeCompare(b.domain))
+          this.services = this.services.sort((a, b) => this.getValue('domain', a.domain)
+            .localeCompare(this.getValue('domain', b.domain)))
         }
       }
     }
@@ -191,6 +192,7 @@ export default struct Home {
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
                         Text(item.attributes.friendly_name)
+                          .enableAutoSpacing(true)
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
                           .layoutWeight(1)
@@ -211,6 +213,7 @@ export default struct Home {
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
                         Text(this.getValue('state', item.state))
+                          .enableAutoSpacing(true)
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
                           .layoutWeight(1)
@@ -258,6 +261,7 @@ export default struct Home {
                     Column() {
                       Row() {
                         Text(this.getValue('domain', item.domain))
+                          .enableAutoSpacing(true)
                           .fontWeight(FontWeight.Medium)
                       }
                       .borderRadius(12)
@@ -272,6 +276,7 @@ export default struct Home {
                           })
                         Row() {
                           Text(this.getValue('service', serviceItem))
+                            .enableAutoSpacing(true)
                             .fontColor($r('sys.color.font_secondary'))
                             .fontSize($r('sys.float.ohos_id_text_size_body2'))
                             .layoutWeight(1)
@@ -307,8 +312,7 @@ export default struct Home {
                             !item.services[serviceItem].target) {
                             const data = await promptAction.showDialog({
                               title: '提示',
-                              message: '确定' + this.getValue('service', serviceItem) +
-                                this.getValue('domain', item.domain) + '？',
+                              message: '确定' + this.getValue('service', serviceItem) + '？',
                               buttons: [
                                 {
                                   text: '取消',
@@ -340,7 +344,7 @@ export default struct Home {
                             this.target = item.services[serviceItem].target ? true : false
                             this.fields = item.services[serviceItem].fields
                             this.path = 'services/' + item.domain + '/' + serviceItem
-                            this.title = this.getValue('service', serviceItem) + this.getValue('domain', item.domain)
+                            this.title = this.getValue('service', serviceItem)
                             this.isShowServicecallSheet = true
                           }
                         })

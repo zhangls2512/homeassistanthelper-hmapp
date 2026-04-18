@@ -11,7 +11,7 @@ export default struct Errlog {
     this.loading = true
     const res = await haRequest(this.context, 'error_log', 'GET')
     this.loading = false
-    if (res !== 'fail') {
+    if (res !== 'fail' && res !== 'null') {
       this.errorLog = res
     }
   }
