@@ -1,6 +1,7 @@
 import { common } from '@kit.AbilityKit'
 import { privacyManager } from '@kit.AppGalleryKit'
 import { LoadingDialog, promptAction } from '@kit.ArkUI'
+import { netBoost } from '@kit.NetworkBoostKit'
 import { rcp } from '@kit.RemoteCommunicationKit'
 import { setAccount } from '../common/Account'
 import { getDnsServer } from '../common/Dnsserver'
@@ -196,6 +197,10 @@ export default struct Login {
                 route = '/' + this.host.substring(index + 1)
               }
               path = this.scheme + '://' + host + (this.port ? (':' + this.port) : '') + route
+              netBoost.setSceneDesc({
+                scene: 'login',
+                sceneEvent: netBoost.SceneEvent.SCENE_EVENT_ENTER
+              })
               const session = rcp.createSession({
                 requestConfiguration: {
                   dns: {
@@ -222,6 +227,10 @@ export default struct Login {
               try {
                 const response = await session.get(path + '/api/')
                 session.close()
+                netBoost.setSceneDesc({
+                  scene: 'login',
+                  sceneEvent: netBoost.SceneEvent.SCENE_EVENT_LEAVE
+                })
                 dialogControllerProgress.close()
                 if (response.statusCode >= 200 && response.statusCode < 300) {
                   await setAccount(this.context, {
@@ -250,6 +259,10 @@ export default struct Login {
                 }
               } catch (err) {
                 session.close()
+                netBoost.setSceneDesc({
+                  scene: 'login',
+                  sceneEvent: netBoost.SceneEvent.SCENE_EVENT_LEAVE
+                })
                 dialogControllerProgress.close()
                 await promptAction.openToast({
                   message: '发生错误，错误码：' + err.code

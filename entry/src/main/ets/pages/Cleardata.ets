@@ -26,6 +26,8 @@ export default struct Cleardata {
   @Local allLog: boolean = false
   @Local errorLog: boolean = false
   @Local errorLogSize: string = ''
+  @Local httpRequestHaFailLog: boolean = false
+  @Local httpRequestHaFailLogSize: string = ''
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   pageInfos = new NavPathStack()
@@ -38,6 +40,8 @@ export default struct Cleardata {
     this.appCacheSize = getSizeString(appCacheSize)
     const errorLogSize = await getDirectorySize(this.context.filesDir + '/log/error')
     this.errorLogSize = getSizeString(errorLogSize)
+    const httpRequestHaFailLogSize = await getDirectorySize(this.context.filesDir + '/log/httprequesthafail')
+    this.httpRequestHaFailLogSize = getSizeString(httpRequestHaFailLogSize)
   }
 
   build() {
@@ -434,6 +438,35 @@ export default struct Cleardata {
               }
               .borderRadius(12)
               .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('HTTP请求Home Assistant服务器失败')
+                  .enableAutoSpacing(true)
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Text(this.httpRequestHaFailLogSize)
+                  .fontColor($r('sys.color.font_secondary'))
+                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_s')
+                  })
+                Checkbox({
+                  name: 'httpRequestHaFailLog',
+                  group: 'log'
+                })
+                  .select(this.httpRequestHaFailLog!!)
+                  .shape(CheckBoxShape.ROUNDED_SQUARE)
+              }
+              .borderRadius(12)
+              .padding(12)
             }
             .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
             .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
@@ -470,6 +503,16 @@ export default struct Cleardata {
                         const fileNames = await fileIo.listFile(errorLogDir)
                         const promises = fileNames.map(async (item) => {
                           await fileIo.unlink(errorLogDir + item)
+                        })
+                        await Promise.all(promises)
+                      }
+                    }
+                    if (item === 'httpRequestHaFailLog') {
+                      const httpRequestHaFailLogDir = this.context.filesDir + '/log/httprequesthafail/'
+                      if (fileIo.accessSync(httpRequestHaFailLogDir)) {
+                        const fileNames = await fileIo.listFile(httpRequestHaFailLogDir)
+                        const promises = fileNames.map(async (item) => {
+                          await fileIo.unlink(httpRequestHaFailLogDir + item)
                         })
                         await Promise.all(promises)
                       }
