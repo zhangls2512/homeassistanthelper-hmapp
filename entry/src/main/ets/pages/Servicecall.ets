@@ -8,6 +8,7 @@ import { Param } from './Home'
 export default struct Servicecall {
   @Consumer() isShowServicecallSheet: boolean = false
   @Param target: boolean = false
+  @Param entityId: string = ''
   @Param fields: Record<string, Param> = {}
   @Param path: string = ''
   @Local body: Record<string, string | boolean | number | string[] | object> = {}
@@ -26,7 +27,7 @@ export default struct Servicecall {
 
   build() {
     List() {
-      if (this.target) {
+      if (this.target && !this.entityId) {
         ListItem() {
           Row() {
             Text('*')
@@ -56,7 +57,7 @@ export default struct Servicecall {
         })
       }
       ForEach(Object.keys(this.fields), (item: string, index) => {
-        if ((index !== 0 || this.target) && this.fields[item].selector) {
+        if ((index !== 0 || (this.target && !this.entityId)) && this.fields[item].selector) {
           ListItem() {
             Divider()
           }
@@ -490,11 +491,13 @@ export default struct Servicecall {
               return
             }
             Object.keys(this.body).forEach(item => {
-              if (typeof (this.fields[item].example) === 'string') {
-                this.body[item] = String(this.body[item])
-              }
-              if (typeof (this.fields[item].example) === 'number') {
-                this.body[item] = Number(this.body[item])
+              if (this.fields[item] && this.fields[item].example) {
+                if (typeof (this.fields[item].example) === 'string') {
+                  this.body[item] = String(this.body[item])
+                }
+                if (typeof (this.fields[item].example) === 'number') {
+                  this.body[item] = Number(this.body[item])
+                }
               }
             })
             const dialogControllerProgress = new CustomDialogController({
@@ -526,6 +529,9 @@ export default struct Servicecall {
       const res = await read(this.context.filesDir + '/parameter.txt', true)
       if (res !== 'fail') {
         this.parameter = JSON.parse(res)
+      }
+      if (this.entityId) {
+        this.body.entity_id = this.entityId
       }
     })
   }
