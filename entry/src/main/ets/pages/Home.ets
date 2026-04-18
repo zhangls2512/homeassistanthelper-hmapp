@@ -1,5 +1,5 @@
 import { common } from '@kit.AbilityKit'
-import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
+import { display, LoadingDialog, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
 import { getPreferType } from '../common/Prefertype'
