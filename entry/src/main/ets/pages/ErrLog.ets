@@ -3,7 +3,7 @@ import { haRequest } from '../common/Request'
 
 @ComponentV2
 export default struct Errlog {
-  @Local errlog: string = ''
+  @Local errorLog: string = ''
   @Local loading: boolean = false
   context = this.getUIContext().getHostContext() as common.UIAbilityContext
 
@@ -11,41 +11,39 @@ export default struct Errlog {
     this.loading = true
     const res = await haRequest(this.context, 'error_log', 'GET')
     this.loading = false
-    if (res !== 'fail') {
-      this.errlog = res
+    if (res !== 'fail' && res !== 'null') {
+      this.errorLog = res
     }
   }
 
   build() {
-    Scroll() {
-      Column() {
-        if (this.loading) {
+    List() {
+      if (this.loading) {
+        ListItem() {
           LoadingProgress()
-            .margin({
-              top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-            })
             .width('20%')
         }
-        List() {
-          if (this.errlog.length === 0 && !this.loading) {
-            ListItem() {
-              Text('无数据')
-            }
-            .margin({
-              top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-            })
-            .width('100%')
-          }
-          ListItem() {
-            Text(this.errlog)
-          }
-          .margin({
-            top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-          })
-          .width('100%')
-        }
-        .layoutWeight(1)
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+        })
+        .width('100%')
       }
+      if (this.errorLog.length === 0 && !this.loading) {
+        ListItem() {
+          Text('无数据')
+        }
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+        })
+        .width('100%')
+      }
+      ListItem() {
+        Text(this.errorLog)
+      }
+      .margin({
+        top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+      })
+      .width('100%')
     }
     .padding({
       bottom: $r('sys.float.ohos_id_default_padding_bottom_fixed'),

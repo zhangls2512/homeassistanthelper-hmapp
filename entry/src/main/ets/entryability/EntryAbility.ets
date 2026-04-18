@@ -34,14 +34,6 @@ export interface JsErrorObject {
   info: Error
 }
 
-interface MenuCodeEventData {
-  data: EventData
-}
-
-interface EventData {
-  menuCode: string
-}
-
 export default class EntryAbility extends UIAbility {
   async appInit(want: Want) {
     await notificationManager.setBadgeNumber(0)
@@ -465,7 +457,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   async onContinue(wantParam: Record<string, Object>) {
-    if (wantParam.version !== 1) {
+    if (wantParam.version !== 2) {
       await promptAction.openToast({
         message: '接续失败，原因：目标端应用版本号与发起端不匹配'
       })
