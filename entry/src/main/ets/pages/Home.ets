@@ -2,13 +2,15 @@ import { common } from '@kit.AbilityKit'
 import { display, LoadingDialog, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
+import { getEntityIconPath } from '../common/Getentityicon'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
 
 interface Attributes {
   friendly_name: string,
-  unit_of_measurement: string
+  unit_of_measurement: string,
+  icon: string
 }
 
 interface StateItem {
@@ -85,17 +87,23 @@ export default struct Home {
             this.states = JSON.parse(stateres)
             this.states =
               this.states.sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
-            this.states = this.states.map((item): StateItem => {
+            const states: StateItem[] = []
+            const promises = this.states.map(async (item) => {
               const domain = item.entity_id.split('.')[0]
               const service = this.services.find(serviceItem => serviceItem.domain === domain)
-              return {
+              if (item.attributes.icon) {
+                item.attributes.icon = await getEntityIconPath(this.context, item.attributes.icon)
+              }
+              states.push({
                 entity_id: item.entity_id,
                 domain: domain,
                 state: item.state,
                 attributes: item.attributes,
                 services: service ? service.services : {}
-              }
+              })
             })
+            await Promise.all(promises)
+            this.states = states
           }
         }
       }
@@ -164,6 +172,15 @@ export default struct Home {
                   ListItem() {
                     Column() {
                       Row() {
+                        if (item.attributes.icon) {
+                          Image(item.attributes.icon)
+                            .fillColor('#44739E')
+                            .height(24)
+                            .margin({
+                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                            })
+                            .width(24)
+                        }
                         Text(item.attributes.friendly_name)
                           .enableAutoSpacing(true)
                           .fontWeight(FontWeight.Medium)
