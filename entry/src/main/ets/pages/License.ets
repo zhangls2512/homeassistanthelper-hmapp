@@ -49,7 +49,7 @@ struct License {
         ListItem() {
           Text() {
             Span('ICP备案：')
-            Span('黑ICP备2024023054号-12A')
+            Span('黑ICP备2024023054号-13A')
               .fontColor($r('sys.color.font_emphasize'))
               .onClick(async () => {
                 await openLink(this.context, 'https://beian.miit.gov.cn/#/Integrated/recordQuery')
