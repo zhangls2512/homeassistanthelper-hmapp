@@ -7,7 +7,8 @@ import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
 
 interface Attributes {
-  friendly_name: string
+  friendly_name: string,
+  unit_of_measurement: string
 }
 
 interface StateItem {
@@ -55,7 +56,7 @@ export default struct Home {
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
-  @Local hoverId: string = ''
+  @Local hoverId: number | string = -1
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -170,7 +171,8 @@ export default struct Home {
                           .margin({
                             right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                           })
-                        Text(this.getValue('state', item.state))
+                        Text(this.getValue('state', item.state) +
+                          (item.attributes.unit_of_measurement ? item.attributes.unit_of_measurement : ''))
                           .enableAutoSpacing(true)
                           .fontColor($r('sys.color.font_secondary'))
                           .fontSize($r('sys.float.ohos_id_text_size_body2'))
@@ -260,6 +262,7 @@ export default struct Home {
                                   await promptAction.openToast({
                                     message: '调用成功'
                                   })
+                                  this.loading = true
                                 }
                               }
                             } else {
@@ -273,6 +276,76 @@ export default struct Home {
                           })
                         })
                       }
+                      Divider()
+                        .padding({
+                          left: 12,
+                          right: 12
+                        })
+                      Row() {
+                        Text('删除')
+                          .fontColor($r('sys.color.warning'))
+                          .fontWeight(FontWeight.Medium)
+                          .layoutWeight(1)
+                          .margin({
+                            right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                          })
+                        Image($r('app.media.right'))
+                          .fillColor($r('sys.color.icon_fourth'))
+                          .height(12)
+                          .width(12)
+                      }
+                      .borderRadius(12)
+                      .padding(12)
+                      .stateStyles({
+                        normal: {
+                          .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
+                            $r('sys.color.comp_background_primary'))
+                        },
+                        pressed: {
+                          .backgroundColor($r('sys.color.interactive_pressed'))
+                        }
+                      })
+                      .onHover(isHover => {
+                        if (!isHover) {
+                          this.hoverId = ''
+                        }
+                        if (isHover) {
+                          this.hoverId = index
+                        }
+                      })
+                      .onClick(async () => {
+                        const promptAction = this.UIContext.getPromptAction()
+                        const data = await promptAction.showDialog({
+                          title: '提示',
+                          message: '删除成功后无法恢复，确定删除？',
+                          buttons: [
+                            {
+                              text: '取消',
+                              color: $r('sys.color.font_primary')
+                            },
+                            {
+                              text: '确定',
+                              color: $r('sys.color.warning')
+                            }
+                          ]
+                        })
+                        if (data.index === 1) {
+                          const dialogControllerProgress = new CustomDialogController({
+                            builder: LoadingDialog({
+                              content: '请求中...'
+                            })
+                          })
+                          dialogControllerProgress.open()
+                          const res = await haRequest(this.context, 'states/' + item.entity_id, 'DELETE')
+                          dialogControllerProgress.close()
+                          if (res !== 'fail') {
+                            await promptAction.openToast({
+                              message: '删除成功'
+                            })
+                            this.loading = true
+                          }
+                        }
+                      })
                     }
                     .backgroundColor($r('sys.color.comp_background_primary'))
                     .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
@@ -391,6 +464,7 @@ export default struct Home {
                                 await promptAction.openToast({
                                   message: '调用成功'
                                 })
+                                this.loading = true
                               }
                             }
                           } else {
