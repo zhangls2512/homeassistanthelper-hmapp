@@ -2,13 +2,15 @@ import { common } from '@kit.AbilityKit'
 import { display, LoadingDialog, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
+import { getEntityIconPath } from '../common/Getentityicon'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
 
 interface Attributes {
   friendly_name: string,
-  unit_of_measurement: string
+  unit_of_measurement: string,
+  icon: string
 }
 
 interface StateItem {
@@ -51,6 +53,7 @@ interface ServiceItem {
 export default struct Home {
   @Provider() isShowServicecallSheet: boolean = false
   @Local selectedIndex: number = 0
+  @Local domains: string[] = []
   @Local states: StateItem[] = []
   @Local services: ServiceItem[] = []
   @Local preferType: number = 1
@@ -79,23 +82,36 @@ export default struct Home {
         this.services = this.services.sort((a, b) => this.getValue('domain', a.domain)
           .localeCompare(this.getValue('domain', b.domain)))
         if (refresh !== 1) {
+          this.domains = []
           this.states = []
           const stateres = await haRequest(this.context, 'states', 'GET')
           if (stateres !== 'fail') {
             this.states = JSON.parse(stateres)
             this.states =
               this.states.sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
-            this.states = this.states.map((item): StateItem => {
+            const states: StateItem[] = []
+            const promises = this.states.map(async (item) => {
               const domain = item.entity_id.split('.')[0]
               const service = this.services.find(serviceItem => serviceItem.domain === domain)
-              return {
+              if (item.attributes.icon) {
+                item.attributes.icon = await getEntityIconPath(this.context, item.attributes.icon)
+              }
+              states.push({
                 entity_id: item.entity_id,
                 domain: domain,
                 state: item.state,
                 attributes: item.attributes,
                 services: service ? service.services : {}
-              }
+              })
             })
+            await Promise.all(promises)
+            const map = new Map<string, boolean>()
+            states.map(item => item.domain).forEach(item => {
+              map.set(item, true)
+            })
+            this.domains = Array.from(map.keys())
+              .sort((a, b) => this.getValue('domain', a).localeCompare(this.getValue('domain', b)))
+            this.states = states
           }
         }
       }
@@ -137,8 +153,7 @@ export default struct Home {
             selectedIndex: this.selectedIndex!!
           })
             .margin({
-              bottom: $r('sys.float.ohos_id_elements_margin_vertical_m'),
-              top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+              bottom: $r('sys.float.ohos_id_elements_margin_vertical_m')
             })
             .bindSheet(this.isShowServicecallSheet!!, this.ServicecallSheetBuilder(), {
               preferType: this.preferType,
@@ -160,199 +175,222 @@ export default struct Home {
                   })
                   .width('100%')
                 }
-                ForEach(this.states, (item: StateItem, index) => {
+                ForEach(this.domains, (domainItem: string, domainIndex) => {
                   ListItem() {
-                    Column() {
-                      Row() {
-                        Text(item.attributes.friendly_name)
-                          .enableAutoSpacing(true)
-                          .fontWeight(FontWeight.Medium)
-                          .layoutWeight(1)
-                          .margin({
-                            right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                          })
-                        Text(this.getValue('state', item.state) +
-                          (item.attributes.unit_of_measurement ? item.attributes.unit_of_measurement : ''))
-                          .enableAutoSpacing(true)
-                          .fontColor($r('sys.color.font_secondary'))
-                          .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                          .textAlign(TextAlign.End)
-                      }
-                      .borderRadius(12)
-                      .padding(12)
+                    Text(this.getValue('domain', domainItem))
+                      .fontSize($r('sys.float.ohos_id_text_size_dialog_tittle'))
+                      .fontWeight(FontWeight.Bold)
+                  }
+                  .margin({
+                    top: domainIndex !== 0 ? $r('sys.float.ohos_id_elements_margin_vertical_l') :
+                      $r('sys.float.ohos_id_elements_margin_vertical_m')
+                  })
 
-                      if (item.services) {
-                        ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
-                          Divider()
-                            .padding({
-                              left: 12,
-                              right: 12
-                            })
-                          Row() {
-                            Text(this.getValue('service', serviceItem))
-                              .enableAutoSpacing(true)
-                              .fontColor($r('sys.color.font_secondary'))
-                              .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                              .layoutWeight(1)
+                  ForEach(this.states.filter(item => item.domain === domainItem), (item: StateItem, index) => {
+                    ListItem() {
+                      Column() {
+                        Row() {
+                          if (item.attributes.icon) {
+                            Image(item.attributes.icon)
+                              .fillColor('#44739E')
+                              .height(24)
                               .margin({
                                 right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                               })
-                            Image($r('app.media.right'))
-                              .fillColor($r('sys.color.icon_fourth'))
-                              .height(12)
-                              .width(12)
+                              .width(24)
                           }
-                          .borderRadius(12)
-                          .padding(12)
-                          .stateStyles({
-                            normal: {
-                              .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
-                                $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
-                            },
-                            pressed: {
-                              .backgroundColor($r('sys.color.interactive_pressed'))
-                            }
-                          })
-                          .onHover(isHover => {
-                            if (!isHover) {
-                              this.hoverId = ''
-                            }
-                            if (isHover) {
-                              this.hoverId = index + ',' + serviceIndex
-                            }
-                          })
-                          .onClick(async () => {
-                            const promptAction = this.UIContext.getPromptAction()
-                            if (Object.keys(item.services[serviceItem].fields).length === 0) {
-                              const data = await promptAction.showDialog({
-                                title: '提示',
-                                message: '确定' + this.getValue('service', serviceItem) + '？',
-                                buttons: [
-                                  {
-                                    text: '取消',
-                                    color: $r('sys.color.warning')
-                                  },
-                                  {
-                                    text: '确定',
-                                    color: $r('sys.color.font_emphasize')
-                                  }
-                                ]
+                          Text(item.attributes.friendly_name)
+                            .enableAutoSpacing(true)
+                            .fontWeight(FontWeight.Medium)
+                            .layoutWeight(1)
+                            .margin({
+                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                            })
+                          Text(this.getValue('state', item.state) +
+                            (item.attributes.unit_of_measurement ? item.attributes.unit_of_measurement : ''))
+                            .enableAutoSpacing(true)
+                            .fontColor($r('sys.color.font_secondary'))
+                            .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                            .textAlign(TextAlign.End)
+                        }
+                        .borderRadius(12)
+                        .padding(12)
+
+                        if (item.services) {
+                          ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
+                            Divider()
+                              .padding({
+                                left: 12,
+                                right: 12
                               })
-                              if (data.index === 1) {
-                                const dialogControllerProgress = new CustomDialogController({
-                                  builder: LoadingDialog({
-                                    content: '请求中...'
-                                  })
+                            Row() {
+                              Text(this.getValue('service', serviceItem))
+                                .enableAutoSpacing(true)
+                                .fontColor($r('sys.color.font_secondary'))
+                                .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                                .layoutWeight(1)
+                                .margin({
+                                  right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                                 })
-                                dialogControllerProgress.open()
-                                let res = ''
-                                if (!item.services[serviceItem].target) {
-                                  res =
-                                    await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST')
-                                }
-                                if (item.services[serviceItem].target) {
-                                  res =
-                                    await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem, 'POST',
-                                      {
-                                        entity_id: item.entity_id
-                                      })
-                                }
-                                dialogControllerProgress.close()
-                                if (res !== 'fail') {
-                                  await promptAction.openToast({
-                                    message: '调用成功'
-                                  })
-                                  this.loading = true
-                                }
+                              Image($r('app.media.right'))
+                                .fillColor($r('sys.color.icon_fourth'))
+                                .height(12)
+                                .width(12)
+                            }
+                            .borderRadius(12)
+                            .padding(12)
+                            .stateStyles({
+                              normal: {
+                                .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
+                                  $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                              },
+                              pressed: {
+                                .backgroundColor($r('sys.color.interactive_pressed'))
                               }
-                            } else {
-                              this.target = item.services[serviceItem].target ? true : false
-                              this.entityId = item.services[serviceItem].target ? item.entity_id : ''
-                              this.fields = item.services[serviceItem].fields
-                              this.path = 'services/' + item.domain + '/' + serviceItem
-                              this.title = this.getValue('service', serviceItem)
-                              this.isShowServicecallSheet = true
-                            }
-                          })
-                        })
-                      }
-                      Divider()
-                        .padding({
-                          left: 12,
-                          right: 12
-                        })
-                      Row() {
-                        Text('删除')
-                          .fontColor($r('sys.color.warning'))
-                          .fontWeight(FontWeight.Medium)
-                          .layoutWeight(1)
-                          .margin({
-                            right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                          })
-                        Image($r('app.media.right'))
-                          .fillColor($r('sys.color.icon_fourth'))
-                          .height(12)
-                          .width(12)
-                      }
-                      .borderRadius(12)
-                      .padding(12)
-                      .stateStyles({
-                        normal: {
-                          .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
-                            $r('sys.color.comp_background_primary'))
-                        },
-                        pressed: {
-                          .backgroundColor($r('sys.color.interactive_pressed'))
-                        }
-                      })
-                      .onHover(isHover => {
-                        if (!isHover) {
-                          this.hoverId = ''
-                        }
-                        if (isHover) {
-                          this.hoverId = index
-                        }
-                      })
-                      .onClick(async () => {
-                        const promptAction = this.UIContext.getPromptAction()
-                        const data = await promptAction.showDialog({
-                          title: '提示',
-                          message: '删除成功后无法恢复，确定删除？',
-                          buttons: [
-                            {
-                              text: '取消',
-                              color: $r('sys.color.font_primary')
-                            },
-                            {
-                              text: '确定',
-                              color: $r('sys.color.warning')
-                            }
-                          ]
-                        })
-                        if (data.index === 1) {
-                          const dialogControllerProgress = new CustomDialogController({
-                            builder: LoadingDialog({
-                              content: '请求中...'
+                            })
+                            .onHover(isHover => {
+                              if (!isHover) {
+                                this.hoverId = ''
+                              }
+                              if (isHover) {
+                                this.hoverId = index + ',' + serviceIndex
+                              }
+                            })
+                            .onClick(async () => {
+                              const promptAction = this.UIContext.getPromptAction()
+                              if (Object.keys(item.services[serviceItem].fields).length === 0) {
+                                const data = await promptAction.showDialog({
+                                  title: '提示',
+                                  message: '确定' + this.getValue('service', serviceItem) + '？',
+                                  buttons: [
+                                    {
+                                      text: '取消',
+                                      color: $r('sys.color.warning')
+                                    },
+                                    {
+                                      text: '确定',
+                                      color: $r('sys.color.font_emphasize')
+                                    }
+                                  ]
+                                })
+                                if (data.index === 1) {
+                                  const dialogControllerProgress = new CustomDialogController({
+                                    builder: LoadingDialog({
+                                      content: '请求中...'
+                                    })
+                                  })
+                                  dialogControllerProgress.open()
+                                  let res = ''
+                                  if (!item.services[serviceItem].target) {
+                                    res =
+                                      await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
+                                        'POST')
+                                  }
+                                  if (item.services[serviceItem].target) {
+                                    res =
+                                      await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
+                                        'POST',
+                                        {
+                                          entity_id: item.entity_id
+                                        })
+                                  }
+                                  dialogControllerProgress.close()
+                                  if (res !== 'fail') {
+                                    await promptAction.openToast({
+                                      message: '调用成功'
+                                    })
+                                    this.loading = true
+                                  }
+                                }
+                              } else {
+                                this.target = item.services[serviceItem].target ? true : false
+                                this.entityId = item.services[serviceItem].target ? item.entity_id : ''
+                                this.fields = item.services[serviceItem].fields
+                                this.path = 'services/' + item.domain + '/' + serviceItem
+                                this.title = this.getValue('service', serviceItem)
+                                this.isShowServicecallSheet = true
+                              }
                             })
                           })
-                          dialogControllerProgress.open()
-                          const res = await haRequest(this.context, 'states/' + item.entity_id, 'DELETE')
-                          dialogControllerProgress.close()
-                          if (res !== 'fail') {
-                            await promptAction.openToast({
-                              message: '删除成功'
+                        }
+                        Divider()
+                          .padding({
+                            left: 12,
+                            right: 12
+                          })
+                        Row() {
+                          Text('删除')
+                            .fontColor($r('sys.color.warning'))
+                            .fontWeight(FontWeight.Medium)
+                            .layoutWeight(1)
+                            .margin({
+                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                             })
-                            this.loading = true
+                          Image($r('app.media.right'))
+                            .fillColor($r('sys.color.icon_fourth'))
+                            .height(12)
+                            .width(12)
+                        }
+                        .borderRadius(12)
+                        .padding(12)
+                        .stateStyles({
+                          normal: {
+                            .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
+                              $r('sys.color.comp_background_primary'))
+                          },
+                          pressed: {
+                            .backgroundColor($r('sys.color.interactive_pressed'))
                           }
-                        }
-                      })
+                        })
+                        .onHover(isHover => {
+                          if (!isHover) {
+                            this.hoverId = ''
+                          }
+                          if (isHover) {
+                            this.hoverId = index
+                          }
+                        })
+                        .onClick(async () => {
+                          const promptAction = this.UIContext.getPromptAction()
+                          const data = await promptAction.showDialog({
+                            title: '提示',
+                            message: '删除成功后无法恢复，确定删除？',
+                            buttons: [
+                              {
+                                text: '取消',
+                                color: $r('sys.color.font_primary')
+                              },
+                              {
+                                text: '确定',
+                                color: $r('sys.color.warning')
+                              }
+                            ]
+                          })
+                          if (data.index === 1) {
+                            const dialogControllerProgress = new CustomDialogController({
+                              builder: LoadingDialog({
+                                content: '请求中...'
+                              })
+                            })
+                            dialogControllerProgress.open()
+                            const res = await haRequest(this.context, 'states/' + item.entity_id, 'DELETE')
+                            dialogControllerProgress.close()
+                            if (res !== 'fail') {
+                              await promptAction.openToast({
+                                message: '删除成功'
+                              })
+                              this.loading = true
+                            }
+                          }
+                        })
+                      }
+                      .backgroundColor($r('sys.color.comp_background_primary'))
+                      .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+                      .padding($r('sys.float.ohos_id_corner_radius_mark'))
                     }
-                    .backgroundColor($r('sys.color.comp_background_primary'))
-                    .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
-                    .padding($r('sys.float.ohos_id_corner_radius_mark'))
-                  }
-                  .margin({
-                    top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+                    .margin({
+                      top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+                    })
                   })
                 })
                 ListItem()

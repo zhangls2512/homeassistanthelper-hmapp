@@ -22,6 +22,8 @@ export default struct Cleardata {
   @Local appCache: boolean = false
   @Local appCacheSize: string = ''
   @Local webviewCache: boolean = false
+  @Local entityIconCache: boolean = false
+  @Local entityIconCacheSize: string = ''
   @Local log: string[] = []
   @Local allLog: boolean = false
   @Local errorLog: boolean = false
@@ -38,6 +40,8 @@ export default struct Cleardata {
     this.debugSettingSize = getSizeString(getFileSize(this.context.preferencesDir + '/debugSetting.db'))
     const appCacheSize = await getDirectorySize(this.context.cacheDir)
     this.appCacheSize = getSizeString(appCacheSize)
+    const entityIconCacheSize = await getDirectorySize(this.context.cacheDir + '/entityicon')
+    this.entityIconCacheSize = getSizeString(entityIconCacheSize)
     const errorLogSize = await getDirectorySize(this.context.filesDir + '/log/error')
     this.errorLogSize = getSizeString(errorLogSize)
     const httpRequestHaFailLogSize = await getDirectorySize(this.context.filesDir + '/log/httprequesthafail')
@@ -326,6 +330,34 @@ export default struct Cleardata {
               }
               .borderRadius(12)
               .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('实体图标')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Text(this.entityIconCacheSize)
+                  .fontColor($r('sys.color.font_secondary'))
+                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_s')
+                  })
+                Checkbox({
+                  name: 'entityIconCache',
+                  group: 'cache'
+                })
+                  .select(this.entityIconCache!!)
+                  .shape(CheckBoxShape.ROUNDED_SQUARE)
+              }
+              .borderRadius(12)
+              .padding(12)
             }
             .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
             .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
@@ -362,6 +394,12 @@ export default struct Cleardata {
                       }
                       if (item === 'webviewCache') {
                         webview.WebviewController.removeAllCache(true)
+                      }
+                      if (item === 'entityIconCache') {
+                        const entityIconCacheDir = this.context.cacheDir + '/entityicon'
+                        if (fileIo.accessSync(entityIconCacheDir)) {
+                          await fileIo.rmdir(entityIconCacheDir)
+                        }
                       }
                     } catch {
                     }
@@ -498,23 +536,15 @@ export default struct Cleardata {
                 if (data.index === 1) {
                   const promises = this.log.map(async (item) => {
                     if (item === 'errorLog') {
-                      const errorLogDir = this.context.filesDir + '/log/error/'
+                      const errorLogDir = this.context.filesDir + '/log/error'
                       if (fileIo.accessSync(errorLogDir)) {
-                        const fileNames = await fileIo.listFile(errorLogDir)
-                        const promises = fileNames.map(async (item) => {
-                          await fileIo.unlink(errorLogDir + item)
-                        })
-                        await Promise.all(promises)
+                        await fileIo.rmdir(errorLogDir)
                       }
                     }
                     if (item === 'httpRequestHaFailLog') {
-                      const httpRequestHaFailLogDir = this.context.filesDir + '/log/httprequesthafail/'
+                      const httpRequestHaFailLogDir = this.context.filesDir + '/log/httprequesthafail'
                       if (fileIo.accessSync(httpRequestHaFailLogDir)) {
-                        const fileNames = await fileIo.listFile(httpRequestHaFailLogDir)
-                        const promises = fileNames.map(async (item) => {
-                          await fileIo.unlink(httpRequestHaFailLogDir + item)
-                        })
-                        await Promise.all(promises)
+                        await fileIo.rmdir(httpRequestHaFailLogDir)
                       }
                     }
                   })
