@@ -1,6 +1,5 @@
 import { fileIo, fileUri } from '@kit.CoreFileKit'
 import { rcp } from '@kit.RemoteCommunicationKit'
-import { getDnsServer } from './Dnsserver'
 import { write } from './File'
 
 interface Response {
@@ -19,9 +18,6 @@ export async function getEntityIconPath(context: Context, icon: string) {
   }
   const session = rcp.createSession({
     requestConfiguration: {
-      dns: {
-        dnsRules: getDnsServer(context)
-      },
       security: {
         tlsRange: {
           min: 'TlsV1.2'
