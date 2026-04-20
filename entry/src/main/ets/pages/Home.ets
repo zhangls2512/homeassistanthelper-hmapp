@@ -82,6 +82,7 @@ export default struct Home {
         this.services = this.services.sort((a, b) => this.getValue('domain', a.domain)
           .localeCompare(this.getValue('domain', b.domain)))
         if (refresh !== 1) {
+          this.domains = []
           this.states = []
           const stateres = await haRequest(this.context, 'states', 'GET')
           if (stateres !== 'fail') {
@@ -104,7 +105,6 @@ export default struct Home {
               })
             })
             await Promise.all(promises)
-            this.domains = states.map(item => item.domain)
             const map = new Map<string, boolean>()
             states.map(item => item.domain).forEach(item => {
               map.set(item, true)
