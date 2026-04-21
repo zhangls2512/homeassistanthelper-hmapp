@@ -971,6 +971,7 @@ export default struct Setting {
     }
     .backgroundColor($r('app.color.sheet_background'))
     .hideBackButton(true)
+    .mode(NavigationMode.Stack)
     .recoverable(true)
     .titleBar({
       padding: {
