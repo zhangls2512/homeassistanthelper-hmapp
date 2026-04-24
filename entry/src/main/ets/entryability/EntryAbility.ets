@@ -93,8 +93,6 @@ export default class EntryAbility extends UIAbility {
     if (deviceInfo.deviceType === '2in1') {
       const windowRectAutoSave = getFlushPreference(context, 'commonSetting', 'windowRectAutoSave', false) as boolean
       await windowStage.setWindowRectAutoSave(windowRectAutoSave)
-    }
-    if (deviceInfo.deviceType === '2in1') {
       const lastWindow = await window.getLastWindow(this.context)
       const windowTopmost = getFlushPreference(context, 'commonSetting', 'windowTopmost', false) as boolean
       await lastWindow.setWindowTopmost(windowTopmost)
@@ -457,7 +455,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   async onContinue(wantParam: Record<string, Object>) {
-    if (wantParam.version !== 5) {
+    if (wantParam.version !== 6) {
       await promptAction.openToast({
         message: '接续失败，原因：目标端应用版本号与发起端不匹配'
       })
