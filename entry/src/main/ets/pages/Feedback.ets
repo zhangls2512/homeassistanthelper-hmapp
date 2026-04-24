@@ -110,7 +110,7 @@ struct Feedback {
                 dialogControllerProgress.open()
                 const res = await developerRequest(this.context, '/product/sendFeedbackEmail', {
                   product: 'homeassistanthelper',
-                  version: '1.0.0.4',
+                  version: '1.0.0.5',
                   content: this.content,
                   contactType: this.contactType,
                   contactValue: this.contactValue
