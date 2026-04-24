@@ -35,7 +35,7 @@ struct License {
     },
     {
       key: '注册时间',
-      value: '2026-04-??'
+      value: '2026-04-23'
     }
   ]
 
