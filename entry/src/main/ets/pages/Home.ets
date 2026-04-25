@@ -87,8 +87,12 @@ export default struct Home {
           const stateres = await haRequest(this.context, 'states', 'GET')
           if (stateres !== 'fail') {
             this.states = JSON.parse(stateres)
-            this.states =
-              this.states.sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
+            this.states = this.states.map(item => {
+              if (!item.attributes.friendly_name) {
+                item.attributes.friendly_name = '未知'
+              }
+              return item
+            }).sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
             const states: StateItem[] = []
             const promises = this.states.map(async (item) => {
               const domain = item.entity_id.split('.')[0]
