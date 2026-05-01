@@ -45,7 +45,7 @@ export default struct Login {
                     const promptAction = this.UIContext.getPromptAction()
                     await promptAction.showDialog({
                       title: '提示',
-                      message: '因 token 在网络传输过程中可被转换成明文，在公网环境下请务必使用 HTTPS 协议，防止 token 泄露',
+                      message: '因长期访问令牌在网络传输过程中可被转换成明文，在公网环境下请务必使用 HTTPS 协议，防止长期访问令牌泄露',
                       buttons: [
                         {
                           text: '确定',
@@ -253,7 +253,7 @@ export default struct Login {
                   }
                   if (response.statusCode === 401) {
                     await promptAction.openToast({
-                      message: '登录失败，原因：token 无效'
+                      message: '登录失败，原因：长期访问令牌无效'
                     })
                   }
                 }
