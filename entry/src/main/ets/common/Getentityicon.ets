@@ -11,7 +11,7 @@ interface Body {
 }
 
 export async function getEntityIconPath(context: Context, icon: string) {
-  const name = icon.slice(4)
+  const name = icon.split(':', 2)[1]
   const filePath = context.cacheDir + '/entityicon/' + name + '.svg'
   if (fileIo.accessSync(filePath)) {
     return fileUri.getUriFromPath(filePath)
