@@ -1,14 +1,18 @@
 import { common } from '@kit.AbilityKit'
+import { display } from '@kit.ArkUI'
 import { webview } from '@kit.ArkWeb'
 import { getAccountInfo } from '../common/Account'
 import { getFlushPreference, setTempPreference } from '../common/Preference'
+import { getPreferType } from '../common/Prefertype'
 
 @ComponentV2
 export default struct Homeweb {
   @Local url: string = ''
   @Local darkMode: WebDarkMode = WebDarkMode.Auto
   @Local optimizeParserBudget: boolean = false
-  context = this.getUIContext().getHostContext() as common.UIAbilityContext
+  @Local preferType: number = 1
+  UIContext = this.getUIContext()
+  context = this.UIContext.getHostContext() as common.UIAbilityContext
   controller = new webview.WebviewController()
 
   build() {
@@ -33,8 +37,8 @@ export default struct Homeweb {
             .enableNativeEmbedMode(true)
             .geolocationAccess(false)
             .margin({
-              bottom: 80,
-              top: 36
+              bottom: this.preferType === 0 ? 80 : 0,
+              top: this.preferType === 0 ? 36 : 0
             })
             .nestedScroll({
               scrollForward: NestedScrollMode.SELF_ONLY,
@@ -62,6 +66,12 @@ export default struct Homeweb {
       }
     }
     .onAppear(async () => {
+      this.preferType = getPreferType(this.UIContext)
+      display.on('change', () => {
+        setTimeout(() => {
+          this.preferType = getPreferType(this.UIContext)
+        }, 200)
+      })
       const colorMode = getFlushPreference(this.context, 'commonSetting', 'colorMode', 0)
       if (colorMode === 0) {
         this.darkMode = WebDarkMode.Auto
