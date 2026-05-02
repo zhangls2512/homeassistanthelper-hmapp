@@ -92,7 +92,7 @@ export default struct Homeweb {
         if (!this.url) {
           setTempPreference(this.context, 'back', 'homeweb', false)
         }
-        if (this.url && this.url !== oldUrl) {
+        if (this.url && oldUrl && this.url !== oldUrl) {
           this.controller.loadUrl(this.url)
           setTimeout(() => {
             this.controller.clearHistory()
