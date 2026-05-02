@@ -294,6 +294,7 @@ export default struct Accountlist {
                   this.bzId = ''
                   this.bz = ''
                   this.accountArray = await getAccountList(this.context)
+                  this.context.eventHub.emit('refreshMe')
                 })
             }
             .margin({
