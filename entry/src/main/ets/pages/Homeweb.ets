@@ -54,7 +54,6 @@ export default struct Homeweb {
               this.context.eventHub.on('backHomeweb', () => {
                 this.controller.backward()
               })
-              this.controller.loadUrl(this.url)
             })
             .onDisAppear(() => {
               this.context.eventHub.off('backHomeweb')
@@ -88,14 +87,17 @@ export default struct Homeweb {
         webview.WebDestroyMode.NORMAL_MODE) as webview.WebDestroyMode
       webview.WebviewController.setWebDestroyMode(destroyMode)
       this.context.eventHub.on('refreshHome', async () => {
-        const accountInfo = await getAccountInfo(this.context)
         const oldUrlExist = this.url ? true : false
+        const accountInfo = await getAccountInfo(this.context)
         this.url = accountInfo.path
         if (!this.url) {
           setTempPreference(this.context, 'back', 'homeweb', false)
         }
         if (this.url && oldUrlExist) {
           this.controller.loadUrl(this.url)
+          setTimeout(() => {
+            this.controller.clearHistory()
+          }, 200)
         }
       })
       const accountInfo = await getAccountInfo(this.context)
