@@ -94,7 +94,8 @@ export default struct Home {
               return item
             }).sort((a, b) => a.attributes.friendly_name.localeCompare(b.attributes.friendly_name))
             const states: StateItem[] = []
-            const promises = this.states.map(async (item) => {
+            for (let i = 0; i < this.states.length; i++) {
+              const item = this.states[i]
               const domain = item.entity_id.split('.')[0]
               const service = this.services.find(serviceItem => serviceItem.domain === domain)
               if (item.attributes.icon) {
@@ -107,8 +108,7 @@ export default struct Home {
                 attributes: item.attributes,
                 services: service ? service.services : {}
               })
-            })
-            await Promise.all(promises)
+            }
             const map = new Map<string, boolean>()
             states.map(item => item.domain).forEach(item => {
               map.set(item, true)

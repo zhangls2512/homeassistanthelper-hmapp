@@ -29,6 +29,7 @@ struct Commonsetting {
   @Local keepScreenOn: boolean = false
   @Local showAccountlistSheetAfterAppLaunch: boolean = false
   @Local downloadParameterAfterAppLaunch: boolean = true
+  @Local defaultUseWeb: boolean = false
   @Local checkVersionUpdateIndex: number = 1
   @Local checkVersionUpdateValue: string = '非流量下'
   @Local openLinkTypeIndex: number = 0
@@ -821,6 +822,30 @@ struct Commonsetting {
                 }
               })
 
+              if (deviceInfo.deviceType !== '2in1') {
+                Divider()
+                  .padding({
+                    left: 12,
+                    right: 12
+                  })
+                Row() {
+                  Text('默认使用网页')
+                    .fontWeight(FontWeight.Medium)
+                    .layoutWeight(1)
+                    .margin({
+                      right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                    })
+                  Toggle({
+                    type: ToggleType.Switch,
+                    isOn: this.defaultUseWeb!!
+                  })
+                    .onChange(isOn => {
+                      setFlushPreference(this.context, 'commonSetting', 'defaultUseWeb', isOn)
+                    })
+                }
+                .borderRadius(12)
+                .padding(12)
+              }
               Divider()
                 .padding({
                   left: 12,
@@ -954,6 +979,7 @@ struct Commonsetting {
         getFlushPreference(this.context, 'commonSetting', 'showAccountlistSheetAfterAppLaunch', false) as boolean
       this.downloadParameterAfterAppLaunch =
         getFlushPreference(this.context, 'commonSetting', 'downloadParameterAfterAppLaunch', true) as boolean
+      this.defaultUseWeb = getFlushPreference(this.context, 'commonSetting', 'defaultUseWeb', false) as boolean
       const checkVersionUpdate = getFlushPreference(this.context, 'commonSetting', 'checkVersionUpdate', 1)
       this.checkVersionUpdateIndex = checkVersionUpdate as number
       if (checkVersionUpdate === 0) {
