@@ -28,8 +28,7 @@ export default struct Homeweb {
         ListItem() {
           Web({
             src: this.url,
-            controller: this.controller,
-            incognitoMode: true
+            controller: this.controller
           })
             .darkMode(this.darkMode)
             .domStorageAccess(true)
@@ -87,13 +86,13 @@ export default struct Homeweb {
         webview.WebDestroyMode.NORMAL_MODE) as webview.WebDestroyMode
       webview.WebviewController.setWebDestroyMode(destroyMode)
       this.context.eventHub.on('refreshHome', async () => {
-        const oldUrlExist = this.url ? true : false
+        const oldUrl = this.url
         const accountInfo = await getAccountInfo(this.context)
         this.url = accountInfo.path
         if (!this.url) {
           setTempPreference(this.context, 'back', 'homeweb', false)
         }
-        if (this.url && oldUrlExist) {
+        if (this.url && this.url !== oldUrl) {
           this.controller.loadUrl(this.url)
           setTimeout(() => {
             this.controller.clearHistory()

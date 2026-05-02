@@ -21,7 +21,6 @@ export default struct Cleardata {
   @Local allCache: boolean = false
   @Local appCache: boolean = false
   @Local appCacheSize: string = ''
-  @Local webviewCache: boolean = false
   @Local entityIconCache: boolean = false
   @Local entityIconCacheSize: string = ''
   @Local log: string[] = []
@@ -30,6 +29,10 @@ export default struct Cleardata {
   @Local errorLogSize: string = ''
   @Local httpRequestHaFailLog: boolean = false
   @Local httpRequestHaFailLogSize: string = ''
+  @Local webview: string[] = []
+  @Local allWebview: boolean = false
+  @Local dataWebview: boolean = false
+  @Local cacheWebview: boolean = false
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   pageInfos = new NavPathStack()
@@ -315,28 +318,6 @@ export default struct Cleardata {
                   right: 12
                 })
               Row() {
-                Text('Webview')
-                  .fontWeight(FontWeight.Medium)
-                  .layoutWeight(1)
-                  .margin({
-                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                  })
-                Checkbox({
-                  name: 'webviewCache',
-                  group: 'cache'
-                })
-                  .select(this.webviewCache!!)
-                  .shape(CheckBoxShape.ROUNDED_SQUARE)
-              }
-              .borderRadius(12)
-              .padding(12)
-
-              Divider()
-                .padding({
-                  left: 12,
-                  right: 12
-                })
-              Row() {
                 Text('实体图标')
                   .fontWeight(FontWeight.Medium)
                   .layoutWeight(1)
@@ -388,20 +369,14 @@ export default struct Cleardata {
                 })
                 if (data.index === 1) {
                   const promises = this.cache.map(async (item) => {
-                    try {
-                      if (item === 'appCache') {
-                        await bundleManager.cleanBundleCacheFilesForSelf()
+                    if (item === 'appCache') {
+                      await bundleManager.cleanBundleCacheFilesForSelf()
+                    }
+                    if (item === 'entityIconCache') {
+                      const entityIconCacheDir = this.context.cacheDir + '/entityicon'
+                      if (fileIo.accessSync(entityIconCacheDir)) {
+                        await fileIo.rmdir(entityIconCacheDir)
                       }
-                      if (item === 'webviewCache') {
-                        webview.WebviewController.removeAllCache(true)
-                      }
-                      if (item === 'entityIconCache') {
-                        const entityIconCacheDir = this.context.cacheDir + '/entityicon'
-                        if (fileIo.accessSync(entityIconCacheDir)) {
-                          await fileIo.rmdir(entityIconCacheDir)
-                        }
-                      }
-                    } catch {
                     }
                   })
                   await Promise.all(promises)
@@ -553,6 +528,129 @@ export default struct Cleardata {
                     message: '清理成功'
                   })
                   await this.getSize()
+                }
+              })
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
+        })
+
+        ListItem() {
+          Column() {
+            Text('Webview')
+              .fontColor($r('sys.color.font_secondary'))
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .fontWeight(FontWeight.Medium)
+              .margin({
+                bottom: 6,
+                left: 12,
+                right: 12
+              })
+            Column() {
+              Row() {
+                Text('全部')
+                  .fontWeight(FontWeight.Bold)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                CheckboxGroup({
+                  group: 'webview'
+                })
+                  .checkboxShape(CheckBoxShape.ROUNDED_SQUARE)
+                  .selectAll(this.allWebview!!)
+                  .onChange(itemName => {
+                    this.webview = itemName.name
+                  })
+              }
+              .borderRadius(12)
+              .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('数据')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Checkbox({
+                  name: 'dataWebview',
+                  group: 'webview'
+                })
+                  .select(this.dataWebview!!)
+                  .shape(CheckBoxShape.ROUNDED_SQUARE)
+              }
+              .borderRadius(12)
+              .padding(12)
+
+              Divider()
+                .padding({
+                  left: 12,
+                  right: 12
+                })
+              Row() {
+                Text('缓存')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Checkbox({
+                  name: 'cacheWebview',
+                  group: 'webview'
+                })
+                  .select(this.cacheWebview!!)
+                  .shape(CheckBoxShape.ROUNDED_SQUARE)
+              }
+              .borderRadius(12)
+              .padding(12)
+            }
+            .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
+            .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+            .padding($r('sys.float.ohos_id_corner_radius_mark'))
+
+            Button('清理 Webview')
+              .enabled(this.webview.length > 0)
+              .margin({
+                top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+              })
+              .role(ButtonRole.ERROR)
+              .width('100%')
+              .onClick(async () => {
+                const promptAction = this.UIContext.getPromptAction()
+                const data = await promptAction.showDialog({
+                  title: '提示',
+                  message: '清理成功后会影响 Webview 的行为、性能。确定清理？',
+                  buttons: [
+                    {
+                      text: '取消',
+                      color: $r('sys.color.font_primary')
+                    },
+                    {
+                      text: '清理',
+                      color: $r('sys.color.warning')
+                    }
+                  ]
+                })
+                if (data.index === 1) {
+                  this.webview.forEach(item => {
+                    if (item === 'dataWebview') {
+                      webview.WebStorage.deleteAllData()
+                    }
+                    if (item === 'cacheWebview') {
+                      webview.WebviewController.removeAllCache(true)
+                    }
+                  })
+                  await promptAction.openToast({
+                    message: '清理成功'
+                  })
                 }
               })
           }
