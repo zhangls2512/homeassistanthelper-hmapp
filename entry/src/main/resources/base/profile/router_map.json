@@ -11,6 +11,11 @@
       "buildFunction": "BestaddressBuilder"
     },
     {
+      "name": "Hideentity",
+      "pageSourceFile": "src/main/ets/pages/Hideentity.ets",
+      "buildFunction": "HideentityBuilder"
+    },
+    {
       "name": "Clearpreferencekey",
       "pageSourceFile": "src/main/ets/pages/Clearpreferencekey.ets",
       "buildFunction": "ClearpreferencekeyBuilder"

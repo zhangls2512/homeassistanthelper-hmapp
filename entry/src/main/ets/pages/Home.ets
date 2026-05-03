@@ -1,23 +1,18 @@
 import { common } from '@kit.AbilityKit'
-import { display, LoadingDialog, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
+import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
 import { read } from '../common/File'
 import { getEntityIconPath } from '../common/Getentityicon'
+import { getHideEntity, HideEntityListItem, setHideEntity } from '../common/Hideentity'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
-
-interface Attributes {
-  friendly_name: string,
-  unit_of_measurement: string,
-  icon: string
-}
 
 interface StateItem {
   entity_id: string,
   domain: string,
   state: string,
-  attributes: Attributes,
+  attributes: Record<string, string>,
   services: Record<string, Service>
 }
 
@@ -56,10 +51,11 @@ export default struct Home {
   @Local domains: string[] = []
   @Local states: StateItem[] = []
   @Local services: ServiceItem[] = []
+  @Local hideEntitys: HideEntityListItem[] = []
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
-  @Local hoverId: number | string = -1
+  @Local hoverId: string = ''
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -75,6 +71,7 @@ export default struct Home {
       if (res !== 'fail') {
         this.parameter = JSON.parse(res)
       }
+      this.hideEntitys = await getHideEntity(this.context)
       this.services = []
       const serviceres = await haRequest(this.context, 'services', 'GET')
       if (serviceres !== 'fail') {
@@ -180,222 +177,300 @@ export default struct Home {
                   .width('100%')
                 }
                 ForEach(this.domains, (domainItem: string, domainIndex) => {
-                  ListItem() {
-                    Text(this.getValue('domain', domainItem))
-                      .fontSize($r('sys.float.ohos_id_text_size_dialog_tittle'))
-                      .fontWeight(FontWeight.Bold)
-                  }
-                  .margin({
-                    top: domainIndex !== 0 ? $r('sys.float.ohos_id_elements_margin_vertical_l') :
-                      $r('sys.float.ohos_id_elements_margin_vertical_m')
-                  })
-
-                  ForEach(this.states.filter(item => item.domain === domainItem), (item: StateItem, index) => {
+                  if (this.states.filter(item => item.domain === domainItem &&
+                    !this.hideEntitys.some(hideEntityItem => item.entity_id === hideEntityItem.entityId)).length > 0) {
                     ListItem() {
-                      Column() {
-                        Row() {
-                          if (item.attributes.icon) {
-                            Image(item.attributes.icon)
-                              .fillColor('#44739E')
-                              .height(24)
-                              .margin({
-                                right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                              })
-                              .width(24)
-                          }
-                          Text(item.attributes.friendly_name)
-                            .enableAutoSpacing(true)
-                            .fontWeight(FontWeight.Medium)
-                            .layoutWeight(1)
-                            .margin({
-                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                            })
-                          Text(this.getValue('state', item.state) +
-                            (item.attributes.unit_of_measurement ? item.attributes.unit_of_measurement : ''))
-                            .enableAutoSpacing(true)
-                            .fontColor($r('sys.color.font_secondary'))
-                            .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                            .textAlign(TextAlign.End)
-                        }
-                        .borderRadius(12)
-                        .padding(12)
-
-                        if (item.services) {
-                          ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
-                            Divider()
-                              .padding({
-                                left: 12,
-                                right: 12
-                              })
-                            Row() {
-                              Text(this.getValue('service', serviceItem))
-                                .enableAutoSpacing(true)
-                                .fontColor($r('sys.color.font_secondary'))
-                                .fontSize($r('sys.float.ohos_id_text_size_body2'))
-                                .layoutWeight(1)
+                      Text(this.getValue('domain', domainItem))
+                        .fontSize($r('sys.float.ohos_id_text_size_dialog_tittle'))
+                        .fontWeight(FontWeight.Bold)
+                    }
+                    .margin({
+                      top: domainIndex !== 0 ? $r('sys.float.ohos_id_elements_margin_vertical_l') :
+                        $r('sys.float.ohos_id_elements_margin_vertical_m')
+                    })
+                  }
+                  ForEach(this.states.filter(item => item.domain === domainItem &&
+                    !this.hideEntitys.some(hideEntityItem => item.entity_id === hideEntityItem.entityId)),
+                    (item: StateItem, index) => {
+                      ListItem() {
+                        Column() {
+                          Row() {
+                            if (item.attributes.icon) {
+                              Image(item.attributes.icon)
+                                .fillColor('#44739E')
+                                .height(24)
                                 .margin({
                                   right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                                 })
-                              Image($r('app.media.right'))
-                                .fillColor($r('sys.color.icon_fourth'))
-                                .height(12)
-                                .width(12)
+                                .width(24)
                             }
-                            .borderRadius(12)
-                            .padding(12)
-                            .stateStyles({
-                              normal: {
-                                .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
-                                  $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
-                              },
-                              pressed: {
-                                .backgroundColor($r('sys.color.interactive_pressed'))
-                              }
-                            })
-                            .onHover(isHover => {
-                              if (!isHover) {
-                                this.hoverId = ''
-                              }
-                              if (isHover) {
-                                this.hoverId = index + ',' + serviceIndex
-                              }
-                            })
-                            .onClick(async () => {
-                              const promptAction = this.UIContext.getPromptAction()
-                              if (Object.keys(item.services[serviceItem].fields).length === 0) {
-                                const data = await promptAction.showDialog({
-                                  title: '提示',
-                                  message: '确定' + this.getValue('service', serviceItem) + '？',
-                                  buttons: [
-                                    {
-                                      text: '取消',
-                                      color: $r('sys.color.warning')
-                                    },
-                                    {
-                                      text: '确定',
-                                      color: $r('sys.color.font_emphasize')
-                                    }
-                                  ]
+                            Text(item.attributes.friendly_name)
+                              .enableAutoSpacing(true)
+                              .fontWeight(FontWeight.Medium)
+                              .layoutWeight(1)
+                              .margin({
+                                right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                              })
+                            Text(this.getValue('state', item.state) +
+                              (item.attributes.unit_of_measurement ? item.attributes.unit_of_measurement : ''))
+                              .enableAutoSpacing(true)
+                              .fontColor($r('sys.color.font_secondary'))
+                              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                              .textAlign(TextAlign.End)
+                          }
+                          .borderRadius(12)
+                          .padding(12)
+
+                          ForEach(Object.keys(item.attributes), (attributeItem: string) => {
+                            if (!['icon', 'friendly_name', 'unit_of_measurement'].includes(attributeItem)) {
+                              Divider()
+                                .padding({
+                                  left: 12,
+                                  right: 12
                                 })
-                                if (data.index === 1) {
-                                  const dialogControllerProgress = new CustomDialogController({
-                                    builder: LoadingDialog({
-                                      content: '请求中...'
-                                    })
+                              Row() {
+                                Text(this.getValue('attributeKey', attributeItem))
+                                  .enableAutoSpacing(true)
+                                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                                  .margin({
+                                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
                                   })
-                                  dialogControllerProgress.open()
-                                  let res = ''
-                                  if (!item.services[serviceItem].target) {
-                                    res =
-                                      await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
-                                        'POST')
-                                  }
-                                  if (item.services[serviceItem].target) {
-                                    res =
-                                      await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
-                                        'POST',
-                                        {
-                                          entity_id: item.entity_id
-                                        })
-                                  }
-                                  dialogControllerProgress.close()
-                                  if (res !== 'fail') {
-                                    await promptAction.openToast({
-                                      message: '调用成功'
-                                    })
-                                    this.loading = true
-                                  }
-                                }
-                              } else {
-                                this.target = item.services[serviceItem].target ? true : false
-                                this.entityId = item.services[serviceItem].target ? item.entity_id : ''
-                                this.fields = item.services[serviceItem].fields
-                                this.path = 'services/' + item.domain + '/' + serviceItem
-                                this.title = this.getValue('service', serviceItem)
-                                this.isShowServicecallSheet = true
+                                Text(Array.isArray(item.attributes[attributeItem]) ?
+                                  JSON.stringify(item.attributes[attributeItem]) :
+                                  this.getValue('attributeValue', String(item.attributes[attributeItem])))
+                                  .enableAutoSpacing(true)
+                                  .fontColor($r('sys.color.font_secondary'))
+                                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                                  .layoutWeight(1)
+                                  .textAlign(TextAlign.End)
                               }
-                            })
-                          })
-                        }
-                        Divider()
-                          .padding({
-                            left: 12,
-                            right: 12
-                          })
-                        Row() {
-                          Text('删除')
-                            .fontColor($r('sys.color.warning'))
-                            .fontWeight(FontWeight.Medium)
-                            .layoutWeight(1)
-                            .margin({
-                              right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                            })
-                          Image($r('app.media.right'))
-                            .fillColor($r('sys.color.icon_fourth'))
-                            .height(12)
-                            .width(12)
-                        }
-                        .borderRadius(12)
-                        .padding(12)
-                        .stateStyles({
-                          normal: {
-                            .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
-                              $r('sys.color.comp_background_primary'))
-                          },
-                          pressed: {
-                            .backgroundColor($r('sys.color.interactive_pressed'))
-                          }
-                        })
-                        .onHover(isHover => {
-                          if (!isHover) {
-                            this.hoverId = ''
-                          }
-                          if (isHover) {
-                            this.hoverId = index
-                          }
-                        })
-                        .onClick(async () => {
-                          const promptAction = this.UIContext.getPromptAction()
-                          const data = await promptAction.showDialog({
-                            title: '提示',
-                            message: '删除成功后无法恢复，确定删除？',
-                            buttons: [
-                              {
-                                text: '取消',
-                                color: $r('sys.color.font_primary')
-                              },
-                              {
-                                text: '确定',
-                                color: $r('sys.color.warning')
-                              }
-                            ]
-                          })
-                          if (data.index === 1) {
-                            const dialogControllerProgress = new CustomDialogController({
-                              builder: LoadingDialog({
-                                content: '请求中...'
-                              })
-                            })
-                            dialogControllerProgress.open()
-                            const res = await haRequest(this.context, 'states/' + item.entity_id, 'DELETE')
-                            dialogControllerProgress.close()
-                            if (res !== 'fail') {
-                              await promptAction.openToast({
-                                message: '删除成功'
-                              })
-                              this.loading = true
+                              .borderRadius(12)
+                              .padding(12)
                             }
+                          })
+                          if (item.services) {
+                            ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
+                              Divider()
+                                .padding({
+                                  left: 12,
+                                  right: 12
+                                })
+                              Row() {
+                                Text(this.getValue('service', serviceItem))
+                                  .enableAutoSpacing(true)
+                                  .fontSize($r('sys.float.ohos_id_text_size_body2'))
+                                  .layoutWeight(1)
+                                  .margin({
+                                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                                  })
+                                Image($r('app.media.right'))
+                                  .fillColor($r('sys.color.icon_fourth'))
+                                  .height(12)
+                                  .width(12)
+                              }
+                              .borderRadius(12)
+                              .padding(12)
+                              .stateStyles({
+                                normal: {
+                                  .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
+                                    $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                                },
+                                pressed: {
+                                  .backgroundColor($r('sys.color.interactive_pressed'))
+                                }
+                              })
+                              .onHover(isHover => {
+                                if (!isHover) {
+                                  this.hoverId = ''
+                                }
+                                if (isHover) {
+                                  this.hoverId = index + ',' + serviceIndex
+                                }
+                              })
+                              .onClick(async () => {
+                                const promptAction = this.UIContext.getPromptAction()
+                                if (Object.keys(item.services[serviceItem].fields).length === 0) {
+                                  const data = await promptAction.showDialog({
+                                    title: '提示',
+                                    message: '确定' + this.getValue('service', serviceItem) + '？',
+                                    buttons: [
+                                      {
+                                        text: '取消',
+                                        color: $r('sys.color.warning')
+                                      },
+                                      {
+                                        text: '确定',
+                                        color: $r('sys.color.font_emphasize')
+                                      }
+                                    ]
+                                  })
+                                  if (data.index === 1) {
+                                    const dialogControllerProgress = new CustomDialogController({
+                                      builder: LoadingDialog({
+                                        content: '请求中...'
+                                      })
+                                    })
+                                    dialogControllerProgress.open()
+                                    let res = ''
+                                    if (!item.services[serviceItem].target) {
+                                      res =
+                                        await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
+                                          'POST')
+                                    }
+                                    if (item.services[serviceItem].target) {
+                                      res =
+                                        await haRequest(this.context, 'services/' + item.domain + '/' + serviceItem,
+                                          'POST',
+                                          {
+                                            entity_id: item.entity_id
+                                          })
+                                    }
+                                    dialogControllerProgress.close()
+                                    if (res !== 'fail') {
+                                      await promptAction.openToast({
+                                        message: '调用成功'
+                                      })
+                                      this.loading = true
+                                    }
+                                  }
+                                } else {
+                                  this.target = item.services[serviceItem].target ? true : false
+                                  this.entityId = item.services[serviceItem].target ? item.entity_id : ''
+                                  this.fields = item.services[serviceItem].fields
+                                  this.path = 'services/' + item.domain + '/' + serviceItem
+                                  this.title = this.getValue('service', serviceItem)
+                                  this.isShowServicecallSheet = true
+                                }
+                              })
+                            })
                           }
-                        })
+                          Divider()
+                            .padding({
+                              left: 12,
+                              right: 12
+                            })
+                          Row() {
+                            Text('隐藏')
+                              .fontColor($r('sys.color.font_emphasize'))
+                              .fontWeight(FontWeight.Medium)
+                              .layoutWeight(1)
+                              .margin({
+                                right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                              })
+                            Image($r('app.media.right'))
+                              .fillColor($r('sys.color.icon_fourth'))
+                              .height(12)
+                              .width(12)
+                          }
+                          .borderRadius(12)
+                          .padding(12)
+                          .stateStyles({
+                            normal: {
+                              .backgroundColor(this.hoverId === index + ',,0' ? $r('sys.color.interactive_hover') :
+                                $r('sys.color.comp_background_primary'))
+                            },
+                            pressed: {
+                              .backgroundColor($r('sys.color.interactive_pressed'))
+                            }
+                          })
+                          .onHover(isHover => {
+                            if (!isHover) {
+                              this.hoverId = ''
+                            }
+                            if (isHover) {
+                              this.hoverId = index + ',,0'
+                            }
+                          })
+                          .onClick(async () => {
+                            this.hideEntitys.push({
+                              entityId: item.entity_id,
+                              friendlyName: item.attributes.friendly_name
+                            })
+                            await setHideEntity(this.context, this.hideEntitys)
+                            await promptAction.openToast({
+                              message: '隐藏成功。可前往“我的”>“设置”>“通用”>“功能”>“隐藏实体”取消隐藏'
+                            })
+                          })
+
+                          Divider()
+                            .padding({
+                              left: 12,
+                              right: 12
+                            })
+                          Row() {
+                            Text('删除')
+                              .fontColor($r('sys.color.warning'))
+                              .fontWeight(FontWeight.Medium)
+                              .layoutWeight(1)
+                              .margin({
+                                right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                              })
+                            Image($r('app.media.right'))
+                              .fillColor($r('sys.color.icon_fourth'))
+                              .height(12)
+                              .width(12)
+                          }
+                          .borderRadius(12)
+                          .padding(12)
+                          .stateStyles({
+                            normal: {
+                              .backgroundColor(this.hoverId === index + ',,1' ? $r('sys.color.interactive_hover') :
+                                $r('sys.color.comp_background_primary'))
+                            },
+                            pressed: {
+                              .backgroundColor($r('sys.color.interactive_pressed'))
+                            }
+                          })
+                          .onHover(isHover => {
+                            if (!isHover) {
+                              this.hoverId = ''
+                            }
+                            if (isHover) {
+                              this.hoverId = index + ',,1'
+                            }
+                          })
+                          .onClick(async () => {
+                            const promptAction = this.UIContext.getPromptAction()
+                            const data = await promptAction.showDialog({
+                              title: '提示',
+                              message: '删除成功后无法恢复，确定删除？',
+                              buttons: [
+                                {
+                                  text: '取消',
+                                  color: $r('sys.color.font_primary')
+                                },
+                                {
+                                  text: '确定',
+                                  color: $r('sys.color.warning')
+                                }
+                              ]
+                            })
+                            if (data.index === 1) {
+                              const dialogControllerProgress = new CustomDialogController({
+                                builder: LoadingDialog({
+                                  content: '请求中...'
+                                })
+                              })
+                              dialogControllerProgress.open()
+                              const res = await haRequest(this.context, 'states/' + item.entity_id, 'DELETE')
+                              dialogControllerProgress.close()
+                              if (res !== 'fail') {
+                                await promptAction.openToast({
+                                  message: '删除成功'
+                                })
+                                this.loading = true
+                              }
+                            }
+                          })
+                        }
+                        .backgroundColor($r('sys.color.comp_background_primary'))
+                        .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+                        .padding($r('sys.float.ohos_id_corner_radius_mark'))
                       }
-                      .backgroundColor($r('sys.color.comp_background_primary'))
-                      .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
-                      .padding($r('sys.float.ohos_id_corner_radius_mark'))
-                    }
-                    .margin({
-                      top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+                      .margin({
+                        top: $r('sys.float.ohos_id_elements_margin_vertical_m')
+                      })
                     })
-                  })
                 })
                 ListItem()
                   .margin({
@@ -444,7 +519,6 @@ export default struct Home {
                         Row() {
                           Text(this.getValue('service', serviceItem))
                             .enableAutoSpacing(true)
-                            .fontColor($r('sys.color.font_secondary'))
                             .fontSize($r('sys.float.ohos_id_text_size_body2'))
                             .layoutWeight(1)
                             .margin({

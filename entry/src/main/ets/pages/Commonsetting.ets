@@ -5,7 +5,7 @@ import { fileIo } from '@kit.CoreFileKit'
 import { image } from '@kit.ImageKit'
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { hdsMaterial, HdsNavDestination, HdsNavDestinationTitleMode, ScrollEffectType } from '@kit.UIDesignKit'
-import { generateBestAddress } from '../common/Account'
+import { generateBestAddress, getLoginStatus } from '../common/Account'
 import { downloadParameter } from '../common/Parameter'
 import { getFlushPreference, setFlushPreference } from '../common/Preference'
 
@@ -34,6 +34,7 @@ struct Commonsetting {
   @Local checkVersionUpdateValue: string = '非流量下'
   @Local openLinkTypeIndex: number = 0
   @Local openLinkTypeValue: string = '系统默认'
+  @Local isLogin: boolean = false
   @Local hoverId: number = -1
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -613,111 +614,7 @@ struct Commonsetting {
 
         ListItem() {
           Column() {
-            Text('性能')
-              .fontColor($r('sys.color.font_secondary'))
-              .fontSize($r('sys.float.ohos_id_text_size_body2'))
-              .fontWeight(FontWeight.Medium)
-              .margin({
-                bottom: 6,
-                left: 12,
-                right: 12
-              })
-            Column() {
-              Row() {
-                Text('刷新最佳地址')
-                  .fontWeight(FontWeight.Medium)
-                  .layoutWeight(1)
-                  .margin({
-                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                  })
-                Image($r('app.media.right'))
-                  .fillColor($r('sys.color.icon_fourth'))
-                  .height(12)
-                  .width(12)
-              }
-              .borderRadius(12)
-              .padding(12)
-              .stateStyles({
-                normal: {
-                  .backgroundColor(this.hoverId === 2 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.ohos_id_color_card_bg'))
-                },
-                pressed: {
-                  .backgroundColor($r('sys.color.interactive_pressed'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 2
-                }
-              })
-              .onClick(async () => {
-                this.dialogControllerProgress.open()
-                await generateBestAddress(this.context)
-                this.dialogControllerProgress.close()
-                await promptAction.openToast({
-                  message: '刷新成功'
-                })
-              })
-
-              Divider()
-                .padding({
-                  left: 12,
-                  right: 12
-                })
-              Row() {
-                Text('最佳地址')
-                  .fontWeight(FontWeight.Medium)
-                  .layoutWeight(1)
-                  .margin({
-                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
-                  })
-                Image($r('app.media.right'))
-                  .fillColor($r('sys.color.icon_fourth'))
-                  .height(12)
-                  .width(12)
-              }
-              .borderRadius(12)
-              .padding(12)
-              .stateStyles({
-                normal: {
-                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.ohos_id_color_card_bg'))
-                },
-                pressed: {
-                  .backgroundColor($r('sys.color.interactive_pressed'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 3
-                }
-              })
-              .onClick(() => {
-                this.pageInfos.pushPath({
-                  name: 'Bestaddress'
-                })
-              })
-            }
-            .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
-            .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
-            .padding($r('sys.float.ohos_id_corner_radius_mark'))
-          }
-          .alignItems(HorizontalAlign.Start)
-        }
-        .margin({
-          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
-        })
-
-        ListItem() {
-          Column() {
-            Text('更多')
+            Text('功能')
               .fontColor($r('sys.color.font_secondary'))
               .fontSize($r('sys.float.ohos_id_text_size_body2'))
               .fontWeight(FontWeight.Medium)
@@ -789,7 +686,7 @@ struct Commonsetting {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
+                  .backgroundColor(this.hoverId === 2 ? $r('sys.color.interactive_hover') :
                     $r('sys.color.ohos_id_color_card_bg'))
                 },
                 pressed: {
@@ -801,7 +698,7 @@ struct Commonsetting {
                   this.hoverId = -1
                 }
                 if (isHover) {
-                  this.hoverId = 3
+                  this.hoverId = 2
                 }
               })
               .onClick(async () => {
@@ -846,11 +743,176 @@ struct Commonsetting {
                 .borderRadius(12)
                 .padding(12)
               }
+              if (this.isLogin) {
+                Divider()
+                  .padding({
+                    left: 12,
+                    right: 12
+                  })
+                Row() {
+                  Text('隐藏实体')
+                    .fontWeight(FontWeight.Medium)
+                    .layoutWeight(1)
+                    .margin({
+                      right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                    })
+                  Image($r('app.media.right'))
+                    .fillColor($r('sys.color.icon_fourth'))
+                    .height(12)
+                    .width(12)
+                }
+                .borderRadius(12)
+                .padding(12)
+                .stateStyles({
+                  normal: {
+                    .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
+                      $r('sys.color.ohos_id_color_card_bg'))
+                  },
+                  pressed: {
+                    .backgroundColor($r('sys.color.interactive_pressed'))
+                  }
+                })
+                .onHover(isHover => {
+                  if (!isHover) {
+                    this.hoverId = -1
+                  }
+                  if (isHover) {
+                    this.hoverId = 3
+                  }
+                })
+                .onClick(() => {
+                  this.pageInfos.pushPath({
+                    name: 'Hideentity'
+                  })
+                })
+              }
+            }
+            .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
+            .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+            .padding($r('sys.float.ohos_id_corner_radius_mark'))
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
+        })
+
+        ListItem() {
+          Column() {
+            Text('性能')
+              .fontColor($r('sys.color.font_secondary'))
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .fontWeight(FontWeight.Medium)
+              .margin({
+                bottom: 6,
+                left: 12,
+                right: 12
+              })
+            Column() {
+              Row() {
+                Text('刷新最佳地址')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Image($r('app.media.right'))
+                  .fillColor($r('sys.color.icon_fourth'))
+                  .height(12)
+                  .width(12)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === 4 ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.ohos_id_color_card_bg'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.interactive_pressed'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = 4
+                }
+              })
+              .onClick(async () => {
+                this.dialogControllerProgress.open()
+                await generateBestAddress(this.context)
+                this.dialogControllerProgress.close()
+                await promptAction.openToast({
+                  message: '刷新成功'
+                })
+              })
+
               Divider()
                 .padding({
                   left: 12,
                   right: 12
                 })
+              Row() {
+                Text('最佳地址')
+                  .fontWeight(FontWeight.Medium)
+                  .layoutWeight(1)
+                  .margin({
+                    right: $r('sys.float.ohos_id_elements_margin_horizontal_m')
+                  })
+                Image($r('app.media.right'))
+                  .fillColor($r('sys.color.icon_fourth'))
+                  .height(12)
+                  .width(12)
+              }
+              .borderRadius(12)
+              .padding(12)
+              .stateStyles({
+                normal: {
+                  .backgroundColor(this.hoverId === 5 ? $r('sys.color.interactive_hover') :
+                    $r('sys.color.ohos_id_color_card_bg'))
+                },
+                pressed: {
+                  .backgroundColor($r('sys.color.interactive_pressed'))
+                }
+              })
+              .onHover(isHover => {
+                if (!isHover) {
+                  this.hoverId = -1
+                }
+                if (isHover) {
+                  this.hoverId = 5
+                }
+              })
+              .onClick(() => {
+                this.pageInfos.pushPath({
+                  name: 'Bestaddress'
+                })
+              })
+            }
+            .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
+            .borderRadius($r('sys.float.ohos_id_corner_radius_default_l'))
+            .padding($r('sys.float.ohos_id_corner_radius_mark'))
+          }
+          .alignItems(HorizontalAlign.Start)
+        }
+        .margin({
+          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
+        })
+
+        ListItem() {
+          Column() {
+            Text('更多')
+              .fontColor($r('sys.color.font_secondary'))
+              .fontSize($r('sys.float.ohos_id_text_size_body2'))
+              .fontWeight(FontWeight.Medium)
+              .margin({
+                bottom: 6,
+                left: 12,
+                right: 12
+              })
+            Column() {
               Row() {
                 Text('启动时检查更新')
                   .fontWeight(FontWeight.Medium)
@@ -999,6 +1061,7 @@ struct Commonsetting {
       if (openLinkType === 1) {
         this.openLinkTypeValue = '自行选择'
       }
+      this.isLogin = await getLoginStatus(this.context)
     })
   }
 }
