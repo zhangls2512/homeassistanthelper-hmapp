@@ -323,7 +323,7 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 5 ? $r('sys.color.interactive_hover') :
+              .backgroundColor(this.hoverId === 4 ? $r('sys.color.interactive_hover') :
                 $r('sys.color.comp_background_primary'))
             },
             pressed: {
@@ -335,7 +335,7 @@ export default struct Me {
               this.hoverId = -1
             }
             if (isHover) {
-              this.hoverId = 5
+              this.hoverId = 4
             }
           })
           .onClick(() => {

@@ -13,10 +13,12 @@ import {
   HdsTabsController
 } from '@kit.UIDesignKit'
 import { importAccounts } from '../common/Account'
+import { getFlushPreference, getTempPreference } from '../common/Preference'
 import { getPreferType } from '../common/Prefertype'
 import Accountlist from './Accountlist'
 import Cleardata from './Cleardata'
 import Home from './Home'
+import Homeweb from './Homeweb'
 import Me from './Me'
 import Notice from './Notice'
 import Uploaderrorlog from './Uploaderrorlog'
@@ -36,6 +38,17 @@ struct Index {
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   controller = new HdsTabsController()
+
+  onBackPress() {
+    if (this.index === 1) {
+      const homeweb = getTempPreference(this.context, 'back', 'homeweb', false) as boolean
+      if (homeweb) {
+        this.context.eventHub.emit('backHomeweb')
+      }
+      return homeweb
+    }
+    return false
+  }
 
   async getBackgroundImage() {
     const backgroundImagePath = this.context.filesDir + '/media/backgroundimage.png'
@@ -124,6 +137,17 @@ struct Index {
 
           TabContent() {
             HdsNavigation() {
+              Homeweb()
+            }
+            .hideBackButton(true)
+            .mode(NavigationMode.Stack)
+            .recoverable(true)
+            .titleMode(HdsNavigationTitleMode.MINI)
+          }
+          .tabBar(this.tabBuilder(1, $r('app.media.web'), '网页'))
+
+          TabContent() {
+            HdsNavigation() {
               Me()
             }
             .hideBackButton(true)
@@ -141,7 +165,7 @@ struct Index {
             })
             .titleMode(HdsNavigationTitleMode.MINI)
           }
-          .tabBar(this.tabBuilder(1, $r('app.media.me'), '我的'))
+          .tabBar(this.tabBuilder(2, $r('app.media.me'), '我的'))
           .bindSheet(this.isShowNoticeSheet!!, this.NoticeSheetBuilder(), {
             preferType: this.preferType,
             title: {
@@ -161,17 +185,17 @@ struct Index {
         })
         .barOverlap(true)
         .barPosition(BarPosition.End)
-        .barWidth(160)
+        .barWidth(240)
         .scrollable(false)
         .vertical(this.preferType === 0 ? false : true)
         .onChange(index => {
           this.index = index
         })
         .onAnimationStart((index, targetIndex) => {
-          if (targetIndex === 0) {
+          if (targetIndex !== 2) {
             this.context.eventHub.emit('refreshHome')
           }
-          if (targetIndex === 1) {
+          if (targetIndex === 2) {
             this.context.eventHub.emit('refreshMe')
           }
         })
@@ -192,6 +216,10 @@ struct Index {
                 label: '首页'
               }),
               new HdsSideMenuMainItem({
+                icon: $r('app.media.web_tab'),
+                label: '网页'
+              }),
+              new HdsSideMenuMainItem({
                 icon: $r('app.media.me_tab'),
                 label: '我的'
               })
@@ -199,10 +227,10 @@ struct Index {
             selectedIndex: 0,
             $selectedIndex: (index) => {
               this.index = index
-              if (index === 0) {
+              if (index !== 2) {
                 this.context.eventHub.emit('refreshHome')
               }
-              if (index === 1) {
+              if (index === 2) {
                 this.context.eventHub.emit('refreshMe')
               }
             }
@@ -229,6 +257,10 @@ struct Index {
               .layoutWeight(1)
           }
           if (this.index === 1) {
+            Homeweb()
+              .layoutWeight(1)
+          }
+          if (this.index === 2) {
             Me()
               .layoutWeight(1)
           }
@@ -294,6 +326,12 @@ struct Index {
         this.backgroundImagePixelMap = await this.getBackgroundImage()
       })
       this.backgroundImagePixelMap = await this.getBackgroundImage()
+      const defaultUseWeb = getFlushPreference(this.context, 'commonSetting', 'defaultUseWeb', false)
+      if (defaultUseWeb) {
+        setTimeout(() => {
+          this.controller.changeIndex(1)
+        }, 100)
+      }
     })
     .onDisAppear(() => {
       this.context.eventHub.off('refreshIndex')
