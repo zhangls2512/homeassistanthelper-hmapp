@@ -285,6 +285,7 @@ export default struct Accountlist {
                 .width($r('sys.float.ohos_id_elements_margin_horizontal_m'))
               Button('保存')
                 .enabled(this.bz !== '')
+                .keyboardShortcut('S', [ModifierKey.CTRL])
                 .layoutWeight(1)
                 .onClick(async () => {
                   await setAccountBz(this.bzId, this.bz)
