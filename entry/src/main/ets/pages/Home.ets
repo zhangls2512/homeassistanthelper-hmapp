@@ -478,6 +478,9 @@ export default struct Home {
                   })
               }
             }
+            .keyboardShortcut('R', [ModifierKey.CTRL], () => {
+              this.loading = true
+            })
             .layoutWeight(1)
             .onRefreshing(async () => {
               await this.get(0)
@@ -608,6 +611,9 @@ export default struct Home {
                   })
               }
             }
+            .keyboardShortcut('R', [ModifierKey.CTRL], () => {
+              this.loading = true
+            })
             .layoutWeight(1)
             .onRefreshing(async () => {
               await this.get(1)

@@ -13,10 +13,11 @@ export default struct Servicecall {
   @Param path: string = ''
   @Local body: Record<string, string | boolean | number | string[] | object> = {}
   @Local parameter: Record<string, Record<string, string>> = {}
-  context = this.getUIContext().getHostContext() as common.UIAbilityContext
+  UIContext = this.getUIContext()
+  context = this.UIContext.getHostContext() as common.UIAbilityContext
   supportedSelectors =
-    ['text', 'number', 'boolean', 'select', 'date', 'time', 'datetime', 'entity', 'config_entry', 'theme', 'object',
-      'statistic', 'state', 'conversation_agent', 'media', 'area', 'duration', 'color_rgb', 'color_temp']
+    ['text', 'number', 'boolean', 'select', 'date', 'time', 'datetime', 'entity', 'config_entry', 'theme', 'state',
+      'conversation_agent', 'media', 'object', 'statistic', 'area', 'duration', 'color_rgb', 'color_temp']
 
   getValue(key: string, value: string) {
     if (!this.parameter[key] || !this.parameter[key][value]) {
@@ -201,81 +202,14 @@ export default struct Servicecall {
                       })
                     }
                   }
-                  if (selectorItem === 'date') {
-                    DatePicker({
-                      start: new Date()
+                  if (['date', 'time', 'datetime', 'config_entry', 'theme', 'state', 'conversation_agent',
+                    'media'].includes(selectorItem)) {
+                    TextInput({
+                      placeholder: this.fields[item].example ? this.fields[item].example : ''
                     })
-                      .onDateChange(value => {
-                        this.body[item] =
-                          value.getFullYear() + '/' + String(value.getMonth() + 1).padStart(2, '0') + '/' +
-                            String(value.getDate()).padStart(2, '0')
-                      })
-                  }
-                  if (selectorItem === 'time') {
-                    TimePicker({
-                      format: this.fields[item].example.split(':').length === 3 ? TimePickerFormat.HOUR_MINUTE_SECOND :
-                        TimePickerFormat.HOUR_MINUTE
-                    })
-                      .margin({
-                        top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-                      })
+                      .enableAutoSpacing(true)
                       .onChange(value => {
-                        this.body[item] = this.fields[item].example.split(':').length === 3 ?
-                          String(value.hour).padStart(2, '0') + ':' + String(value.minute).padStart(2, '0') + ':' +
-                            String(value.second).padStart(2, '0') :
-                          String(value.hour).padStart(2, '0') + ':' + String(value.minute).padStart(2, '0')
-                      })
-                  }
-                  if (selectorItem === 'datetime') {
-                    DatePicker({
-                      start: new Date()
-                    })
-                      .onDateChange(value => {
-                        const data = value.getFullYear() + '-' + String(value.getMonth() + 1).padStart(2, '0') + '-' +
-                          String(value.getDate()).padStart(2, '0') + ' '
-                        if (!this.body[item]) {
-                          this.body[item] = data
-                          return
-                        }
-                        const old = this.body[item] as string
-                        if (old.length === 8) {
-                          this.body[item] = data + old
-                          return
-                        }
-                        if (old.length === 11) {
-                          this.body[item] = data
-                          return
-                        }
-                        if (old.length === 19) {
-                          this.body[item] = data + old.slice(11)
-                        }
-                      })
-                    TimePicker({
-                      format: TimePickerFormat.HOUR_MINUTE_SECOND
-                    })
-                      .margin({
-                        top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-                      })
-                      .onChange(value => {
-                        const data =
-                          String(value.hour).padStart(2, '0') + ':' + String(value.minute).padStart(2, '0') + ':' +
-                            String(value.second).padStart(2, '0')
-                        if (!this.body[item]) {
-                          this.body[item] = data
-                          return
-                        }
-                        const old = this.body[item] as string
-                        if (old.length === 8) {
-                          this.body[item] = data
-                          return
-                        }
-                        if (old.length === 11) {
-                          this.body[item] = old + data
-                          return
-                        }
-                        if (old.length === 19) {
-                          this.body[item] = old.slice(0, 11) + data
-                        }
+                        this.body[item] = value
                       })
                   }
                   if (selectorItem === 'entity') {
@@ -300,24 +234,6 @@ export default struct Servicecall {
                             this.body[item] = ''
                           }
                         }
-                      })
-                  }
-                  if (selectorItem === 'config_entry') {
-                    TextInput({
-                      placeholder: this.fields[item].example
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[item] = value
-                      })
-                  }
-                  if (selectorItem === 'theme') {
-                    TextInput({
-                      placeholder: this.fields[item].example
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[item] = value
                       })
                   }
                   if (selectorItem === 'object') {
@@ -355,33 +271,6 @@ export default struct Servicecall {
                         } catch {
                           this.body[item] = ''
                         }
-                      })
-                  }
-                  if (selectorItem === 'state') {
-                    TextInput({
-                      placeholder: this.fields[item].example
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[this.fields[item].selector[selectorItem].attribute] = value
-                      })
-                  }
-                  if (selectorItem === 'conversation_agent') {
-                    TextInput({
-                      placeholder: this.fields[item].example
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[item] = value
-                      })
-                  }
-                  if (selectorItem === 'media') {
-                    TextInput({
-                      placeholder: this.fields[item].example ? this.fields[item].example : ''
-                    })
-                      .enableAutoSpacing(true)
-                      .onChange(value => {
-                        this.body[item] = value
                       })
                   }
                   if (selectorItem === 'area') {
