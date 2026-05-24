@@ -1152,12 +1152,30 @@ struct Debugsetting {
                   type: ToggleType.Switch,
                   isOn: this.closeRemoteValidationWhenLinkHa!!
                 })
-                  .onChange(isOn => {
+                  .onChange(async (isOn) => {
                     if (!isOn) {
                       setFlushPreference(this.context, 'debugSetting', 'closeRemoteValidationWhenLinkHa', 'system')
                     }
                     if (isOn) {
                       setFlushPreference(this.context, 'debugSetting', 'closeRemoteValidationWhenLinkHa', 'skip')
+                    }
+                    const promptAction = this.UIContext.getPromptAction()
+                    const data = await promptAction.showDialog({
+                      title: '提示',
+                      message: '设置成功，需重启应用生效，是否重启？',
+                      buttons: [
+                        {
+                          text: '取消',
+                          color: $r('sys.color.font_primary')
+                        },
+                        {
+                          text: '重启',
+                          color: $r('sys.color.font_emphasize')
+                        }
+                      ]
+                    })
+                    if (data.index === 1) {
+                      await restartApp(this.context, this.UIContext)
                     }
                   })
               }

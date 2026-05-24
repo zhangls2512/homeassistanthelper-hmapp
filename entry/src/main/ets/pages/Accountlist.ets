@@ -1,11 +1,9 @@
 import { common } from '@kit.AbilityKit'
 import { promptAction } from '@kit.ArkUI'
-import { rcp } from '@kit.RemoteCommunicationKit'
 import { hdsEffect } from '@kit.UIDesignKit'
 import { AccountInfo, getAccountList, removeAccount, setAccount, setAccountBz } from '../common/Account'
-import { getDnsServer } from '../common/Dnsserver'
 import copy from '../common/Pasteboard'
-import { getFlushPreference } from '../common/Preference'
+import { getHaGlobalSession } from '../common/Request'
 
 @ComponentV2
 export default struct Accountlist {
@@ -320,30 +318,14 @@ export default struct Accountlist {
       this.accountArray = await getAccountList(this.context)
       this.pathConnectionStatusArray = Array(this.accountArray.length).fill('connecting')
       const promises = this.accountArray.map(async (item, index) => {
-        const session = rcp.createSession({
-          requestConfiguration: {
-            dns: {
-              dnsRules: getDnsServer(this.context)
-            },
-            security: {
-              remoteValidation: getFlushPreference(this.context, 'debugSetting', 'closeRemoteValidationWhenLinkHa',
-                'system') as 'system' | 'skip',
-              tlsRange: {
-                min: 'TlsV1.2'
-              }
-            }
-          }
-        })
         try {
-          const response = await session.get(item.path)
-          session.close()
+          const response = await getHaGlobalSession(this.context).get(item.path)
           if (response.statusCode >= 200 && response.statusCode < 300) {
             this.pathConnectionStatusArray[index] = 'connected'
           } else {
             this.pathConnectionStatusArray[index] = 'disconnected'
           }
         } catch {
-          session.close()
           this.pathConnectionStatusArray[index] = 'disconnected'
         }
       })

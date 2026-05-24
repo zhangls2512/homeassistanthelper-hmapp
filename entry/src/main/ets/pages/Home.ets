@@ -1,9 +1,9 @@
 import { common } from '@kit.AbilityKit'
 import { display, LoadingDialog, promptAction, SegmentButtonV2Items, TabSegmentButtonV2 } from '@kit.ArkUI'
 import { getLoginStatus } from '../common/Account'
-import { read } from '../common/File'
 import { getEntityIconPath } from '../common/Getentityicon'
 import { getHideEntity, HideEntityListItem, setHideEntity } from '../common/Hideentity'
+import { getParameter } from '../common/Parameter'
 import { getPreferType } from '../common/Prefertype'
 import { haRequest } from '../common/Request'
 import Servicecall from './Servicecall'
@@ -67,10 +67,7 @@ export default struct Home {
 
   async get(refresh: number = 2) {
     if (this.isLogin) {
-      const res = await read(this.context.filesDir + '/parameter.txt', true)
-      if (res !== 'fail') {
-        this.parameter = JSON.parse(res)
-      }
+      this.parameter = await getParameter(this.context)
       this.hideEntitys = await getHideEntity(this.context)
       this.services = []
       const serviceres = await haRequest(this.context, 'services', 'GET')
@@ -483,6 +480,7 @@ export default struct Home {
             })
             .layoutWeight(1)
             .onRefreshing(async () => {
+              this.states = []
               await this.get(0)
               this.loading = false
             })
@@ -616,6 +614,7 @@ export default struct Home {
             })
             .layoutWeight(1)
             .onRefreshing(async () => {
+              this.services = []
               await this.get(1)
               this.loading = false
             })

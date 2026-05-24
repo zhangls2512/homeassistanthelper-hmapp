@@ -1,6 +1,6 @@
 import { common } from '@kit.AbilityKit'
 import { LoadingDialog, promptAction } from '@kit.ArkUI'
-import { read } from '../common/File'
+import { getParameter } from '../common/Parameter'
 import { haRequest } from '../common/Request'
 import { Param } from './Home'
 
@@ -416,10 +416,7 @@ export default struct Servicecall {
       right: $r('sys.float.ohos_id_elements_margin_horizontal_l')
     })
     .onAppear(async () => {
-      const res = await read(this.context.filesDir + '/parameter.txt', true)
-      if (res !== 'fail') {
-        this.parameter = JSON.parse(res)
-      }
+      this.parameter = await getParameter(this.context)
       if (this.entityId) {
         this.body.entity_id = this.entityId
       }

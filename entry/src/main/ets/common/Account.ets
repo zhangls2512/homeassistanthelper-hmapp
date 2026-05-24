@@ -28,8 +28,10 @@ export interface BestAddressItem {
   best: string
 }
 
+let globalAccountInfo: AccountInfo | undefined = undefined
+
 export async function setAccount(context: Context, accountInfo: InAccountInfo) {
-  await exitAccount(context)
+  await exitAccount()
   const accounts = await getAccountList(context)
   let accountIndex = -1
   accounts.forEach((item, index) => {
@@ -43,6 +45,15 @@ export async function setAccount(context: Context, accountInfo: InAccountInfo) {
     await appAccountManager.setCredential(id, 'token', accountInfo.token)
     await appAccountManager.setCustomData(id, 'bz', accountInfo.bz)
     await appAccountManager.setCustomData(id, 'isLogin', accountInfo.isLogin)
+    if (accountInfo.isLogin) {
+      globalAccountInfo = {
+        id: id,
+        path: accountInfo.path,
+        token: accountInfo.token,
+        bz: accountInfo.bz,
+        isLogin: accountInfo.isLogin
+      }
+    }
   }
   if (accountIndex === -1) {
     let oldAccountIndex = -1
@@ -60,6 +71,15 @@ export async function setAccount(context: Context, accountInfo: InAccountInfo) {
       }
     })
     await appAccountManager.setCredential(id, 'token', accountInfo.token)
+    if (accountInfo.isLogin) {
+      globalAccountInfo = {
+        id: id,
+        path: accountInfo.path,
+        token: accountInfo.token,
+        bz: accountInfo.bz,
+        isLogin: accountInfo.isLogin
+      }
+    }
     if (oldAccountIndex !== -1) {
       await removeAccount(context, accounts[oldAccountIndex].id)
     }
@@ -69,6 +89,9 @@ export async function setAccount(context: Context, accountInfo: InAccountInfo) {
 export async function setAccountBz(id: string, bz: string) {
   const appAccountManager = appAccount.createAppAccountManager()
   await appAccountManager.setCustomData(id, 'bz', bz)
+  if (globalAccountInfo && globalAccountInfo.id === id) {
+    globalAccountInfo.bz = bz
+  }
 }
 
 export async function getLoginStatus(context: Context) {
@@ -79,13 +102,27 @@ export async function getLoginStatus(context: Context) {
   return false
 }
 
-export async function getAccountInfo(context: Context): Promise<AccountInfo> {
-  const accounts = await getAccountList(context, true)
-  const account = accounts.find(item => item.isLogin === 'true')
-  if (account) {
-    return account
+export async function getAccountInfo(context: Context) {
+  if (globalAccountInfo === undefined) {
+    const accounts = await getAccountList(context, true)
+    const account = accounts.find(item => item.isLogin === 'true')
+    if (!account) {
+      globalAccountInfo = {
+        id: '',
+        path: '',
+        token: '',
+        bz: '',
+        isLogin: 'false'
+      }
+    }
+    if (account) {
+      globalAccountInfo = account
+    }
   }
-  return {
+  if (globalAccountInfo && globalAccountInfo.path) {
+    globalAccountInfo.path = getBestAddress(context, globalAccountInfo.path)
+  }
+  return globalAccountInfo ?? {
     id: '',
     path: '',
     token: '',
@@ -113,12 +150,17 @@ export async function getAccountList(context: Context, bestPath = false): Promis
   return appAccounts
 }
 
-export async function exitAccount(context: Context) {
-  const accounts = await getAccountList(context)
-  const account = accounts.find(item => item.isLogin === 'true')
-  if (account) {
+export async function exitAccount() {
+  if (globalAccountInfo && globalAccountInfo.id) {
     const appAccountManager = appAccount.createAppAccountManager()
-    await appAccountManager.setCustomData(account.id, 'isLogin', 'false')
+    await appAccountManager.setCustomData(globalAccountInfo.id, 'isLogin', 'false')
+    globalAccountInfo = {
+      id: '',
+      path: '',
+      token: '',
+      bz: '',
+      isLogin: 'false'
+    }
   }
 }
 
@@ -130,6 +172,15 @@ export async function removeAccount(context: Context, id: string) {
     await promptAction.openToast({
       message: '删除成功'
     })
+    if (globalAccountInfo && globalAccountInfo.id === id) {
+      globalAccountInfo = {
+        id: '',
+        path: '',
+        token: '',
+        bz: '',
+        isLogin: 'false'
+      }
+    }
   }
 }
 

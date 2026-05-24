@@ -11,31 +11,46 @@ interface DeveloperErrorResponse {
   errFix: string
 }
 
+export let haGlobalSession: rcp.Session | undefined = undefined
+
+export const defaultGlobalSession = rcp.createSession({
+  requestConfiguration: {
+    security: {
+      tlsRange: {
+        min: 'TlsV1.2'
+      }
+    }
+  }
+})
+
+export function getHaGlobalSession(context: Context) {
+  if (!haGlobalSession) {
+    haGlobalSession = rcp.createSession({
+      requestConfiguration: {
+        dns: {
+          dnsRules: getDnsServer(context)
+        },
+        security: {
+          remoteValidation: getFlushPreference(context, 'debugSetting', 'closeRemoteValidationWhenLinkHa',
+            'system') as 'system' | 'skip',
+          tlsRange: {
+            min: 'TlsV1.2'
+          }
+        }
+      }
+    })
+  }
+  return haGlobalSession
+}
+
 export async function haRequest(context: Context, path: string, method: string,
   body?: rcp.RequestContent): Promise<string> {
   const accountInfo = await getAccountInfo(context)
-  const session = rcp.createSession({
-    requestConfiguration: {
-      dns: {
-        dnsRules: getDnsServer(context)
-      },
-      security: {
-        remoteValidation: getFlushPreference(context, 'debugSetting', 'closeRemoteValidationWhenLinkHa',
-          'system') as 'system' | 'skip',
-        tlsRange: {
-          min: 'TlsV1.2'
-        }
-      }
-    },
-    headers: {
-      Authorization: 'Bearer ' + accountInfo.token
-    }
-  })
   try {
-    const response = await session.fetch(new rcp.Request(accountInfo.path + '/api/' + path, method, {
-      Authorization: 'Bearer ' + accountInfo.token
-    }, body))
-    session.close()
+    const response =
+      await getHaGlobalSession(context).fetch(new rcp.Request(accountInfo.path + '/api/' + path, method, {
+        Authorization: 'Bearer ' + accountInfo.token
+      }, body))
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return String(response)
     } else {
@@ -49,7 +64,6 @@ export async function haRequest(context: Context, path: string, method: string,
       return 'fail'
     }
   } catch (err) {
-    session.close()
     await promptAction.openToast({
       message: '发生错误，错误码：' + err.code
     })
@@ -64,18 +78,8 @@ export async function developerRequest(context: Context, path: string, body: rcp
       '全量模式未开启，无法使用在线功能。如需使用在线功能，请前往“我的”>“设置”>“更多”>“应用服务模式”，开启全量模式。')
     return 'fail'
   }
-  const session = rcp.createSession({
-    requestConfiguration: {
-      security: {
-        tlsRange: {
-          min: 'TlsV1.2'
-        }
-      }
-    }
-  })
   try {
-    const response = await session.post('https://api.zhangls2512.cn' + path, body)
-    session.close()
+    const response = await defaultGlobalSession.post('https://api.zhangls2512.cn' + path, body)
     if (response.statusCode >= 200 && response.statusCode < 300) {
       const res = response.toJSON() as DeveloperErrorResponse
       if (res.errCode === 0) {
@@ -91,7 +95,6 @@ export async function developerRequest(context: Context, path: string, body: rcp
       return 'fail'
     }
   } catch (err) {
-    session.close()
     await promptAction.openToast({
       message: '发生错误，错误码：' + err.code
     })
