@@ -131,7 +131,7 @@ export async function getAccountInfo(context: Context) {
   }
 }
 
-export async function getAccountList(context: Context, bestPath = false): Promise<AccountInfo[]> {
+export async function getAccountList(context: Context, bestPath = false) {
   const appAccountManager = appAccount.createAppAccountManager()
   const appAccountIds = await appAccountManager.getAccountsByOwner('com.songjy.homeassistanthelper')
   const appAccounts: AccountInfo[] = []

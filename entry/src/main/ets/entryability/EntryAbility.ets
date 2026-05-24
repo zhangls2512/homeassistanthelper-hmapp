@@ -475,7 +475,7 @@ export default class EntryAbility extends UIAbility {
     }
   }
 
-  async onPrepareToTerminateAsync(): Promise<boolean> {
+  async onPrepareToTerminateAsync() {
     const statusBarExist = getTempPreference(this.context, 'statusBar', 'exist', false) as boolean
     if (statusBarExist) {
       await this.context.hideAbility()

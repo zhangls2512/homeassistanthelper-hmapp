@@ -43,8 +43,7 @@ export function getHaGlobalSession(context: Context) {
   return haGlobalSession
 }
 
-export async function haRequest(context: Context, path: string, method: string,
-  body?: rcp.RequestContent): Promise<string> {
+export async function haRequest(context: Context, path: string, method: string, body?: rcp.RequestContent) {
   const accountInfo = await getAccountInfo(context)
   try {
     const response =
