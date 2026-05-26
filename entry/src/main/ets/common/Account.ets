@@ -81,7 +81,7 @@ export async function setAccount(context: Context, accountInfo: InAccountInfo) {
       }
     }
     if (oldAccountIndex !== -1) {
-      await removeAccount(context, accounts[oldAccountIndex].id)
+      await removeAccount(accounts[oldAccountIndex].id)
     }
   }
 }
@@ -164,22 +164,19 @@ export async function exitAccount() {
   }
 }
 
-export async function removeAccount(context: Context, id: string) {
-  const accounts = await getAccountList(context)
-  if (accounts.find(item => item.id === id)) {
-    const appAccountManager = appAccount.createAppAccountManager()
-    await appAccountManager.removeAccount(id)
-    await promptAction.openToast({
-      message: '删除成功'
-    })
-    if (globalAccountInfo && globalAccountInfo.id === id) {
-      globalAccountInfo = {
-        id: '',
-        path: '',
-        token: '',
-        bz: '',
-        isLogin: 'false'
-      }
+export async function removeAccount(id: string) {
+  const appAccountManager = appAccount.createAppAccountManager()
+  await appAccountManager.removeAccount(id)
+  await promptAction.openToast({
+    message: '删除成功'
+  })
+  if (globalAccountInfo && globalAccountInfo.id === id) {
+    globalAccountInfo = {
+      id: '',
+      path: '',
+      token: '',
+      bz: '',
+      isLogin: 'false'
     }
   }
 }

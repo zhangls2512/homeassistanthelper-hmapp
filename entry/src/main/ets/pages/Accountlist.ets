@@ -55,7 +55,7 @@ export default struct Accountlist {
             ]
           })
           if (data.index === 1) {
-            await removeAccount(this.context, item.id)
+            await removeAccount(item.id)
             this.accountArray = await getAccountList(this.context)
             if (item.isLogin === 'true') {
               this.context.eventHub.emit('refreshMe')
