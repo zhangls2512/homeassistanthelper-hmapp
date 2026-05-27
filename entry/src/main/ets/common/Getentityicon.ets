@@ -1,6 +1,6 @@
 import { fileIo, fileUri } from '@kit.CoreFileKit'
-import { rcp } from '@kit.RemoteCommunicationKit'
 import { write } from './File'
+import { defaultGlobalSession } from './Request'
 
 interface Response {
   icons: Record<string, Body>
@@ -16,18 +16,8 @@ export async function getEntityIconPath(context: Context, icon: string) {
   if (fileIo.accessSync(filePath)) {
     return fileUri.getUriFromPath(filePath)
   }
-  const session = rcp.createSession({
-    requestConfiguration: {
-      security: {
-        tlsRange: {
-          min: 'TlsV1.2'
-        }
-      }
-    }
-  })
   try {
-    const response = await session.get('https://api.iconify.design/mdi.json?icons=' + name)
-    session.close()
+    const response = await defaultGlobalSession.get('https://api.iconify.design/mdi.json?icons=' + name)
     if (response.statusCode >= 200 && response.statusCode < 300) {
       const res = response.toJSON() as Response
       if (res.icons[name]) {
@@ -40,7 +30,6 @@ export async function getEntityIconPath(context: Context, icon: string) {
       return ''
     }
   } catch {
-    session.close()
     return ''
   }
 }
