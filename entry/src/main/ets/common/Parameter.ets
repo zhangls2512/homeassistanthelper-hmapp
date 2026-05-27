@@ -1,12 +1,26 @@
 import { promptAction } from '@kit.ArkUI'
 import { fileIo } from '@kit.CoreFileKit'
-import { rcp } from '@kit.RemoteCommunicationKit'
 import { read, write } from './File'
 import { sha256hash } from './Hash'
-import { developerRequest } from './Request'
+import { defaultGlobalSession, developerRequest } from './Request'
 
 interface Response {
   downloadUrl: string
+}
+
+let globalParameter: Record<string, Record<string, string>> | undefined = undefined
+
+export async function getParameter(context: Context) {
+  if (!globalParameter) {
+    const res = await read(context.filesDir + '/parameter.txt', true)
+    if (res !== 'fail') {
+      globalParameter = JSON.parse(res)
+    }
+    if (res === 'fail') {
+      globalParameter = {}
+    }
+  }
+  return globalParameter ?? {} as Record<string, Record<string, string>>
 }
 
 export async function downloadParameter(context: Context) {
@@ -21,23 +35,14 @@ export async function downloadParameter(context: Context) {
   })
   if (response !== 'fail') {
     const res = JSON.parse(response) as Response
-    const session = rcp.createSession({
-      requestConfiguration: {
-        security: {
-          tlsRange: {
-            min: 'TlsV1.2'
-          }
-        }
-      }
-    })
     try {
-      const response = await session.get(res.downloadUrl)
-      session.close()
+      const response = await defaultGlobalSession.get(res.downloadUrl)
       if (response.statusCode >= 200 && response.statusCode < 300) {
         const parameter = String(response)
         const newHash = sha256hash(parameter)
         if (oldHash !== newHash) {
           await write(filePath, parameter)
+          globalParameter = JSON.parse(parameter)
           return true
         }
         if (oldHash === newHash) {
@@ -49,7 +54,6 @@ export async function downloadParameter(context: Context) {
         })
       }
     } catch (err) {
-      session.close()
       await promptAction.openToast({
         message: '发生错误，错误码：' + err.code
       })

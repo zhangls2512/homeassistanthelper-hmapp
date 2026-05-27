@@ -1,5 +1,5 @@
 import { common } from '@kit.AbilityKit'
-import { read } from '../common/File'
+import { getParameter } from '../common/Parameter'
 import copy from '../common/Pasteboard'
 import { haRequest } from '../common/Request'
 
@@ -21,14 +21,11 @@ export default struct Log {
 
   async get() {
     this.loading = true
-    const res = await read(this.context.filesDir + '/parameter.txt', true)
-    if (res !== 'fail') {
-      this.parameter = JSON.parse(res)
-    }
-    const resa = await haRequest(this.context, 'logbook', 'GET')
+    this.parameter = await getParameter(this.context)
+    const res = await haRequest(this.context, 'logbook', 'GET')
     this.loading = false
-    if (resa !== 'fail') {
-      this.logs = JSON.parse(resa)
+    if (res !== 'fail') {
+      this.logs = JSON.parse(res)
     }
   }
 

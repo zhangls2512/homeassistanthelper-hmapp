@@ -9,6 +9,7 @@ import { hdsMaterial, HdsNavDestination, HdsNavDestinationTitleMode, ScrollEffec
 import { generateBestAddress, getLoginStatus } from '../common/Account'
 import { downloadParameter } from '../common/Parameter'
 import { getFlushPreference, setFlushPreference } from '../common/Preference'
+import { restartApp } from '../common/Restartapp'
 
 @Builder
 export function CommonsettingBuilder() {
@@ -105,11 +106,7 @@ struct Commonsetting {
                       ]
                     })
                     if (data.index === 1) {
-                      const applicationContext = this.context.getApplicationContext()
-                      applicationContext.restartApp({
-                        bundleName: 'com.songjy.homeassistanthelper',
-                        abilityName: 'EntryAbility'
-                      })
+                      await restartApp(this.context, this.UIContext)
                     }
                   })
               }
@@ -173,11 +170,7 @@ struct Commonsetting {
                       ]
                     })
                     if (data.index === 1) {
-                      const applicationContext = this.context.getApplicationContext()
-                      applicationContext.restartApp({
-                        bundleName: 'com.songjy.homeassistanthelper',
-                        abilityName: 'EntryAbility'
-                      })
+                      await restartApp(this.context, this.UIContext)
                     }
                   })
               }
@@ -265,11 +258,7 @@ struct Commonsetting {
                         ]
                       })
                       if (data.index === 1) {
-                        const applicationContext = this.context.getApplicationContext()
-                        applicationContext.restartApp({
-                          bundleName: 'com.songjy.homeassistanthelper',
-                          abilityName: 'EntryAbility'
-                        })
+                        await restartApp(this.context, this.UIContext)
                       }
                     })
                 }
@@ -338,11 +327,7 @@ struct Commonsetting {
                         ]
                       })
                       if (data.index === 1) {
-                        const applicationContext = this.context.getApplicationContext()
-                        applicationContext.restartApp({
-                          bundleName: 'com.songjy.homeassistanthelper',
-                          abilityName: 'EntryAbility'
-                        })
+                        await restartApp(this.context, this.UIContext)
                       }
                     }
                   })
@@ -385,11 +370,7 @@ struct Commonsetting {
                         ]
                       })
                       if (data.index === 1) {
-                        const applicationContext = this.context.getApplicationContext()
-                        applicationContext.restartApp({
-                          bundleName: 'com.songjy.homeassistanthelper',
-                          abilityName: 'EntryAbility'
-                        })
+                        await restartApp(this.context, this.UIContext)
                       }
                     })
                 }
