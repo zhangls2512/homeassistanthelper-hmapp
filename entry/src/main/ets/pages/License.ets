@@ -3,10 +3,10 @@ import { LengthMetrics } from '@kit.ArkUI'
 import { hdsMaterial, HdsNavDestination, HdsNavDestinationTitleMode, ScrollEffectType } from '@kit.UIDesignKit'
 import openLink from '../common/Openlink'
 
-interface Item {
+/*interface Item {
   key: string,
   value: string
-}
+}*/
 
 @Builder
 export function LicenseBuilder() {
@@ -16,7 +16,8 @@ export function LicenseBuilder() {
 @ComponentV2
 struct License {
   context = this.getUIContext().getHostContext() as common.UIAbilityContext
-  gabaInfoArray: Item[] = [
+
+  /*gabaInfoArray: Item[] = [
     {
       key: '名称',
       value: 'Home Assistant助手'
@@ -37,7 +38,7 @@ struct License {
       key: '注册时间',
       value: '2026-04-23'
     }
-  ]
+  ]*/
 
   build() {
     HdsNavDestination() {
@@ -61,7 +62,7 @@ struct License {
           top: $r('sys.float.ohos_id_elements_margin_vertical_m')
         })
 
-        ListItem() {
+        /*ListItem() {
           Column() {
             Text('公安备案')
               .fontColor($r('sys.color.font_emphasize'))
@@ -121,7 +122,7 @@ struct License {
         }
         .margin({
           top: $r('sys.float.ohos_id_elements_margin_vertical_l')
-        })
+        })*/
 
         ListItem()
           .margin({
