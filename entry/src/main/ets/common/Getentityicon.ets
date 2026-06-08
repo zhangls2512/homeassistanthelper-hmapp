@@ -1,6 +1,7 @@
 import { fileIo, fileUri } from '@kit.CoreFileKit'
 import { write } from './File'
 import { defaultGlobalSession } from './Request'
+import { stringSplit } from './Stringformat'
 
 interface Response {
   icons: Record<string, Body>
@@ -11,7 +12,7 @@ interface Body {
 }
 
 export async function getEntityIconPath(context: Context, icon: string) {
-  const name = icon.split(':', 2)[1]
+  const name = stringSplit(icon, ':', 2)[1]
   const filePath = context.cacheDir + '/entityicon/' + name + '.svg'
   if (fileIo.accessSync(filePath)) {
     return fileUri.getUriFromPath(filePath)
