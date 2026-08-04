@@ -55,7 +55,6 @@ export default struct Home {
   @Local preferType: number = 1
   @Local loading: boolean = false
   @Local isLogin: boolean = false
-  @Local hoverId: string = ''
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -148,7 +147,8 @@ export default struct Home {
               { text: '状态' },
               { text: '服务' }
             ]),
-            selectedIndex: this.selectedIndex!!
+            selectedIndex: this.selectedIndex!!,
+            enableStateAnimation: true
           })
             .margin({
               bottom: $r('sys.float.ohos_id_elements_margin_vertical_m')
@@ -188,7 +188,7 @@ export default struct Home {
                   }
                   ForEach(this.states.filter(item => item.domain === domainItem &&
                     !this.hideEntitys.some(hideEntityItem => item.entity_id === hideEntityItem.entityId)),
-                    (item: StateItem, index) => {
+                    (item: StateItem) => {
                       ListItem() {
                         Column() {
                           Row() {
@@ -246,7 +246,7 @@ export default struct Home {
                             }
                           })
                           if (item.services) {
-                            ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
+                            ForEach(Object.keys(item.services), (serviceItem: string) => {
                               Divider()
                                 .padding({
                                   left: 12,
@@ -269,19 +269,13 @@ export default struct Home {
                               .padding(12)
                               .stateStyles({
                                 normal: {
-                                  .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
-                                    $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                                  .backgroundColor($r('sys.color.comp_background_primary'))
+                                },
+                                hovered: {
+                                  .backgroundColor($r('sys.color.interactive_hover'))
                                 },
                                 pressed: {
                                   .backgroundColor($r('sys.color.interactive_pressed'))
-                                }
-                              })
-                              .onHover(isHover => {
-                                if (!isHover) {
-                                  this.hoverId = ''
-                                }
-                                if (isHover) {
-                                  this.hoverId = index + ',' + serviceIndex
                                 }
                               })
                               .onClick(async () => {
@@ -363,19 +357,13 @@ export default struct Home {
                           .padding(12)
                           .stateStyles({
                             normal: {
-                              .backgroundColor(this.hoverId === index + ',,0' ? $r('sys.color.interactive_hover') :
-                                $r('sys.color.comp_background_primary'))
+                              .backgroundColor($r('sys.color.comp_background_primary'))
+                            },
+                            hovered: {
+                              .backgroundColor($r('sys.color.interactive_hover'))
                             },
                             pressed: {
                               .backgroundColor($r('sys.color.interactive_pressed'))
-                            }
-                          })
-                          .onHover(isHover => {
-                            if (!isHover) {
-                              this.hoverId = ''
-                            }
-                            if (isHover) {
-                              this.hoverId = index + ',,0'
                             }
                           })
                           .onClick(async () => {
@@ -411,19 +399,13 @@ export default struct Home {
                           .padding(12)
                           .stateStyles({
                             normal: {
-                              .backgroundColor(this.hoverId === index + ',,1' ? $r('sys.color.interactive_hover') :
-                                $r('sys.color.comp_background_primary'))
+                              .backgroundColor($r('sys.color.comp_background_primary'))
+                            },
+                            hovered: {
+                              .backgroundColor($r('sys.color.interactive_hover'))
                             },
                             pressed: {
                               .backgroundColor($r('sys.color.interactive_pressed'))
-                            }
-                          })
-                          .onHover(isHover => {
-                            if (!isHover) {
-                              this.hoverId = ''
-                            }
-                            if (isHover) {
-                              this.hoverId = index + ',,1'
                             }
                           })
                           .onClick(async () => {
@@ -499,7 +481,7 @@ export default struct Home {
                   })
                   .width('100%')
                 }
-                ForEach(this.services, (item: ServiceItem, index) => {
+                ForEach(this.services, (item: ServiceItem) => {
                   ListItem() {
                     Column() {
                       Row() {
@@ -511,7 +493,7 @@ export default struct Home {
                       .padding(12)
                       .width('100%')
 
-                      ForEach(Object.keys(item.services), (serviceItem: string, serviceIndex) => {
+                      ForEach(Object.keys(item.services), (serviceItem: string) => {
                         Divider()
                           .padding({
                             left: 12,
@@ -534,19 +516,13 @@ export default struct Home {
                         .padding(12)
                         .stateStyles({
                           normal: {
-                            .backgroundColor(this.hoverId === index + ',' + serviceIndex ?
-                              $r('sys.color.interactive_hover') : $r('sys.color.comp_background_primary'))
+                            .backgroundColor($r('sys.color.comp_background_primary'))
+                          },
+                          hovered: {
+                            .backgroundColor($r('sys.color.interactive_hover'))
                           },
                           pressed: {
                             .backgroundColor($r('sys.color.interactive_pressed'))
-                          }
-                        })
-                        .onHover(isHover => {
-                          if (!isHover) {
-                            this.hoverId = ''
-                          }
-                          if (isHover) {
-                            this.hoverId = index + ',' + serviceIndex
                           }
                         })
                         .onClick(async () => {

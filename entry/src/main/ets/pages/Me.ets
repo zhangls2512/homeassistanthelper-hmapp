@@ -17,7 +17,6 @@ export default struct Me {
   @Local isShowSettingSheet: boolean = false
   @Local preferType: number = 1
   @Local bz: string = ''
-  @Local hoverId: number = -1
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   dialogControllerProgress = new CustomDialogController({
@@ -88,19 +87,13 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 0 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
               .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 0
             }
           })
           .onClick(() => {
@@ -144,19 +137,13 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 1 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
               .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 1
             }
           })
           .onClick(() => {
@@ -208,19 +195,13 @@ export default struct Me {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === 2 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.comp_background_primary'))
+                  .backgroundColor($r('sys.color.comp_background_primary'))
+                },
+                hovered: {
+                  .backgroundColor($r('sys.color.interactive_hover'))
                 },
                 pressed: {
                   .backgroundColor($r('sys.color.comp_background_secondary'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 2
                 }
               })
               .onClick(() => {
@@ -260,19 +241,13 @@ export default struct Me {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.comp_background_primary'))
+                  .backgroundColor($r('sys.color.comp_background_primary'))
+                },
+                hovered: {
+                  .backgroundColor($r('sys.color.interactive_hover'))
                 },
                 pressed: {
                   .backgroundColor($r('sys.color.comp_background_secondary'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 3
                 }
               })
               .onClick(() => {
@@ -320,19 +295,13 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 4 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
               .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 4
             }
           })
           .onClick(() => {
