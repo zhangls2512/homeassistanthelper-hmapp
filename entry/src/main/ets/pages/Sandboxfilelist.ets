@@ -305,7 +305,7 @@ struct Sandboxfilelist {
                       .backgroundColor($r('sys.color.interactive_hover'))
                     },
                     pressed: {
-                      .backgroundColor($r('sys.color.comp_background_secondary'))
+                      .backgroundColor($r('sys.color.interactive_pressed'))
                     }
                   })
                   .onClick(async () => {
@@ -381,7 +381,7 @@ struct Sandboxfilelist {
                       .backgroundColor($r('sys.color.interactive_hover'))
                     },
                     pressed: {
-                      .backgroundColor($r('sys.color.comp_background_secondary'))
+                      .backgroundColor($r('sys.color.interactive_pressed'))
                     }
                   })
                   .onClick(async () => {
