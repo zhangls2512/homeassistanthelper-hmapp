@@ -261,7 +261,7 @@ export default struct Login {
               })
             Text() {
               Span('已阅读并同意')
-              Span('《Home Assistant助手用户服务条款与条件》')
+              Span('《智能家居助手用户服务条款与条件》')
                 .fontColor($r('sys.color.font_emphasize'))
                 .onClick(async () => {
                   try {
@@ -274,7 +274,7 @@ export default struct Login {
                     })
                   }
                 })
-              Span('《关于Home Assistant助手与隐私的声明》')
+              Span('《关于智能家居助手与隐私的声明》')
                 .fontColor($r('sys.color.font_emphasize'))
                 .onClick(async () => {
                   try {

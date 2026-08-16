@@ -52,7 +52,7 @@ export default struct Home {
   @Local states: StateItem[] = []
   @Local services: ServiceItem[] = []
   @Local hideEntitys: HideEntityListItem[] = []
-  @Local preferType: number = 1
+  @Local preferType: SheetType = SheetType.CENTER
   @Local loading: boolean = false
   @Local isLogin: boolean = false
   @Local parameter: Record<string, Record<string, string>> = {}
@@ -453,7 +453,7 @@ export default struct Home {
                 })
                 ListItem()
                   .margin({
-                    bottom: this.preferType === 0 ? 80 : 0
+                    bottom: this.preferType === SheetType.BOTTOM ? 80 : 0
                   })
               }
             }
@@ -581,7 +581,7 @@ export default struct Home {
                 })
                 ListItem()
                   .margin({
-                    bottom: this.preferType === 0 ? 80 : 0
+                    bottom: this.preferType === SheetType.BOTTOM ? 80 : 0
                   })
               }
             }
@@ -601,7 +601,7 @@ export default struct Home {
     .padding({
       left: $r('sys.float.ohos_id_elements_margin_horizontal_l'),
       right: $r('sys.float.ohos_id_elements_margin_horizontal_l'),
-      top: this.preferType === 0 ? 0 : $r('sys.float.ohos_id_default_padding_top')
+      top: this.preferType === SheetType.BOTTOM ? 0 : $r('sys.float.ohos_id_default_padding_top')
     })
     .onAppear(async () => {
       this.preferType = getPreferType(this.UIContext)

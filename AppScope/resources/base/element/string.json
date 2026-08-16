@@ -2,7 +2,7 @@
   "string": [
     {
       "name": "app_name",
-      "value": "Home Assistant助手"
+      "value": "智能家居助手"
     },
     {
       "name": "app_version",

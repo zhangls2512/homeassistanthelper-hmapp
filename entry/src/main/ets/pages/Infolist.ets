@@ -425,8 +425,7 @@ struct Infolist {
               Column() {
                 Text('信息内容')
                   .fontWeight(FontWeight.Medium)
-                Text('应用名称 (Home Assistant助手)、内容、联系方式 (可选)')
-                  .enableAutoSpacing(true)
+                Text('应用名称 (智能家居助手)、内容、联系方式 (可选)')
                   .fontColor($r('sys.color.font_secondary'))
                   .fontSize($r('sys.float.ohos_id_text_size_body2'))
                   .margin({

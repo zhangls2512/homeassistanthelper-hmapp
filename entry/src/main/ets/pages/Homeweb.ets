@@ -10,7 +10,7 @@ export default struct Homeweb {
   @Local url: string = ''
   @Local darkMode: WebDarkMode = WebDarkMode.Auto
   @Local optimizeParserBudget: boolean = false
-  @Local preferType: number = 1
+  @Local preferType: SheetType = SheetType.CENTER
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   controller = new webview.WebviewController()
@@ -36,8 +36,8 @@ export default struct Homeweb {
             .enableNativeEmbedMode(true)
             .geolocationAccess(false)
             .margin({
-              bottom: this.preferType === 0 ? 80 : 0,
-              top: this.preferType === 0 ? 36 : 0
+              bottom: this.preferType === SheetType.BOTTOM ? 80 : 0,
+              top: this.preferType === SheetType.BOTTOM ? 36 : 0
             })
             .nestedScroll({
               scrollForward: NestedScrollMode.SELF_ONLY,

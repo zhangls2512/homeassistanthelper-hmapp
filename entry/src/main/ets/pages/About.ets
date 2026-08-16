@@ -64,7 +64,6 @@ struct About {
                   })
               )
             Text($r('app.string.app_name'))
-              .enableAutoSpacing(true)
               .fontSize($r('sys.float.ohos_id_text_size_dialog_tittle'))
               .fontWeight(FontWeight.Bold)
               .margin({
