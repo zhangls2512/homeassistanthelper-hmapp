@@ -49,7 +49,7 @@ export default struct Homeweb {
               this.controller.enableAdsBlock(true)
               this.controller.enableIntelligentTrackingPrevention(true)
               this.controller.enableSafeBrowsing(true)
-              this.controller.setErrorPageEnabled(true)
+              this.controller.setErrorPageEnabled(true, true)
               this.context.eventHub.on('backHomeweb', () => {
                 this.controller.backward()
               })
