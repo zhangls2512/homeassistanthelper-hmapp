@@ -34,7 +34,6 @@
         "buildOption": {
           "packOptions": {
             "fastBuildApp": true,
-            "deduplicateHar": true,
             "appWithSignedPkg": true,
             "enableIncrementalSoCompress": true,
             "deduplicateSo": true
