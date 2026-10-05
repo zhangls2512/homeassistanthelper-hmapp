@@ -27,3 +27,12 @@ export function getSizeString(size: number) {
   }
   return ''
 }
+
+export function stringSplit(str: string, sep: string, num: number) {
+  const origin = str.split(sep)
+  if (origin.length <= num) {
+    return origin
+  } else {
+    return origin.slice(0, num - 1).concat(origin.slice(num - 1).join(sep))
+  }
+}

@@ -3,11 +3,6 @@ import { LengthMetrics } from '@kit.ArkUI'
 import { hdsMaterial, HdsNavDestination, HdsNavDestinationTitleMode, ScrollEffectType } from '@kit.UIDesignKit'
 import openLink from '../common/Openlink'
 
-/*interface Item {
-  key: string,
-  value: string
-}*/
-
 @Builder
 export function LicenseBuilder() {
   License()
@@ -16,29 +11,6 @@ export function LicenseBuilder() {
 @ComponentV2
 struct License {
   context = this.getUIContext().getHostContext() as common.UIAbilityContext
-
-  /*gabaInfoArray: Item[] = [
-    {
-      key: '名称',
-      value: 'Home Assistant助手'
-    },
-    {
-      key: '主体类型',
-      value: '个人'
-    },
-    {
-      key: '开办者名称',
-      value: '张轩铭'
-    },
-    {
-      key: '注册地公安机关',
-      value: '萨尔图区网安大队'
-    },
-    {
-      key: '注册时间',
-      value: '2026-04-23'
-    }
-  ]*/
 
   build() {
     HdsNavDestination() {
@@ -61,68 +33,6 @@ struct License {
         .margin({
           top: $r('sys.float.ohos_id_elements_margin_vertical_m')
         })
-
-        /*ListItem() {
-          Column() {
-            Text('公安备案')
-              .fontColor($r('sys.color.font_emphasize'))
-              .fontWeight(FontWeight.Bold)
-              .onClick(async () => {
-                await openLink(this.context, 'https://beian.mps.gov.cn/#/query/appSearch')
-              })
-            Flex({
-              alignItems: ItemAlign.Stretch,
-              wrap: FlexWrap.Wrap
-            }) {
-              ForEach(this.gabaInfoArray, (item: Item) => {
-                Column() {
-                  Text(item.key)
-                    .fontWeight(FontWeight.Medium)
-                    .textAlign(TextAlign.Center)
-                }
-                .border({
-                  color: $r('sys.color.font_primary'),
-                  width: {
-                    right: 1,
-                    top: 1
-                  }
-                })
-                .justifyContent(FlexAlign.Center)
-                .padding($r('sys.float.ohos_id_elements_margin_vertical_m'))
-                .width('50%')
-
-                Column() {
-                  Text(item.value)
-                    .enableAutoSpacing(true)
-                    .textAlign(TextAlign.Center)
-                }
-                .border({
-                  color: $r('sys.color.font_primary'),
-                  width: {
-                    top: 1
-                  }
-                })
-                .justifyContent(FlexAlign.Center)
-                .padding($r('sys.float.ohos_id_elements_margin_vertical_m'))
-                .width('50%')
-              })
-            }
-            .border({
-              color: $r('sys.color.font_primary'),
-              width: {
-                bottom: 1,
-                left: 1,
-                right: 1
-              }
-            })
-            .margin({
-              top: $r('sys.float.ohos_id_elements_margin_vertical_m')
-            })
-          }
-        }
-        .margin({
-          top: $r('sys.float.ohos_id_elements_margin_vertical_l')
-        })*/
 
         ListItem()
           .margin({

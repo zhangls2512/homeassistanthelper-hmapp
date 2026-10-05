@@ -64,7 +64,7 @@ export async function haRequest(context: Context, path: string, method: string, 
     }
   } catch (err) {
     await promptAction.openToast({
-      message: '发生错误，错误码：' + err.code
+      message: '发生错误，错误码：' + err.code + (err.message ? '，错误信息：' + err.message : '')
     })
     return 'fail'
   }
@@ -95,7 +95,7 @@ export async function developerRequest(context: Context, path: string, body: rcp
     }
   } catch (err) {
     await promptAction.openToast({
-      message: '发生错误，错误码：' + err.code
+      message: '发生错误，错误码：' + err.code + (err.message ? '，错误信息：' + err.message : '')
     })
     return 'fail'
   }

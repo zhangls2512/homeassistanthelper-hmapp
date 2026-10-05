@@ -16,7 +16,6 @@ struct Dnsserver {
   @Local focus: boolean = false
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
-  pageInfos = new NavPathStack()
 
   build() {
     HdsNavDestination() {
@@ -70,11 +69,11 @@ struct Dnsserver {
               })
               .width('100%')
               .onClick(async () => {
-                const promptAction = this.UIContext.getPromptAction()
                 if (!this.ip) {
                   deleteFlushPreferenceKey(this.context, 'debugSetting', 'dnsserverip')
                   deleteFlushPreferenceKey(this.context, 'debugSetting', 'dnsserverport')
                 }
+                const promptAction = this.UIContext.getPromptAction()
                 if (this.ip) {
                   if (!this.port) {
                     await promptAction.openToast({
@@ -159,8 +158,7 @@ struct Dnsserver {
       }
     })
     .titleMode(HdsNavDestinationTitleMode.MODAL)
-    .onReady(context => {
-      this.pageInfos = context.pathStack
+    .onAppear(() => {
       this.ip = getFlushPreference(this.context, 'debugSetting', 'dnsserverip', '') as string
       if (this.ip === '') {
         this.focus = true

@@ -14,7 +14,6 @@ interface LogItem {
 export default struct Log {
   @Local logs: LogItem[] = []
   @Local loading: boolean = false
-  @Local hoverId: number = -1
   @Local parameter: Record<string, Record<string, string>> = {}
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
@@ -57,7 +56,7 @@ export default struct Log {
         })
         .width('100%')
       }
-      ForEach(this.logs, (item: LogItem, index) => {
+      ForEach(this.logs, (item: LogItem) => {
         ListItem() {
           Column() {
             if (item.entity_id) {
@@ -78,19 +77,13 @@ export default struct Log {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === index ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.ohos_id_color_card_bg'))
+                  .backgroundColor($r('sys.color.ohos_id_color_card_bg'))
+                },
+                hovered: {
+                  .backgroundColor($r('sys.color.interactive_hover'))
                 },
                 pressed: {
                   .backgroundColor($r('sys.color.interactive_pressed'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = index
                 }
               })
               .onClick(async () => {
