@@ -15,9 +15,8 @@ export default struct Me {
   @Local isShowLogSheet: boolean = false
   @Local isShowErrlogSheet: boolean = false
   @Local isShowSettingSheet: boolean = false
-  @Local preferType: number = 1
+  @Local preferType: SheetType = SheetType.CENTER
   @Local bz: string = ''
-  @Local hoverId: number = -1
   UIContext = this.getUIContext()
   context = this.UIContext.getHostContext() as common.UIAbilityContext
   dialogControllerProgress = new CustomDialogController({
@@ -60,7 +59,7 @@ export default struct Me {
     List() {
       ListItem()
         .margin({
-          top: this.preferType === 0 ? 56 : 0
+          top: this.preferType === SheetType.BOTTOM ? 56 : 0
         })
       ListItem() {
         Column() {
@@ -88,19 +87,13 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 0 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
-              .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 0
+              .backgroundColor($r('sys.color.interactive_pressed'))
             }
           })
           .onClick(() => {
@@ -113,9 +106,6 @@ export default struct Me {
             preferType: this.preferType,
             title: {
               title: '登录'
-            },
-            onDisappear: async () => {
-              await this.get()
             }
           })
 
@@ -147,19 +137,13 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 1 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
-              .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 1
+              .backgroundColor($r('sys.color.interactive_pressed'))
             }
           })
           .onClick(() => {
@@ -211,19 +195,13 @@ export default struct Me {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === 2 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.comp_background_primary'))
+                  .backgroundColor($r('sys.color.comp_background_primary'))
+                },
+                hovered: {
+                  .backgroundColor($r('sys.color.interactive_hover'))
                 },
                 pressed: {
-                  .backgroundColor($r('sys.color.comp_background_secondary'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 2
+                  .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
               .onClick(() => {
@@ -263,19 +241,13 @@ export default struct Me {
               .padding(12)
               .stateStyles({
                 normal: {
-                  .backgroundColor(this.hoverId === 3 ? $r('sys.color.interactive_hover') :
-                    $r('sys.color.comp_background_primary'))
+                  .backgroundColor($r('sys.color.comp_background_primary'))
+                },
+                hovered: {
+                  .backgroundColor($r('sys.color.interactive_hover'))
                 },
                 pressed: {
-                  .backgroundColor($r('sys.color.comp_background_secondary'))
-                }
-              })
-              .onHover(isHover => {
-                if (!isHover) {
-                  this.hoverId = -1
-                }
-                if (isHover) {
-                  this.hoverId = 3
+                  .backgroundColor($r('sys.color.interactive_pressed'))
                 }
               })
               .onClick(() => {
@@ -323,29 +295,20 @@ export default struct Me {
           .padding(12)
           .stateStyles({
             normal: {
-              .backgroundColor(this.hoverId === 4 ? $r('sys.color.interactive_hover') :
-                $r('sys.color.comp_background_primary'))
+              .backgroundColor($r('sys.color.comp_background_primary'))
+            },
+            hovered: {
+              .backgroundColor($r('sys.color.interactive_hover'))
             },
             pressed: {
-              .backgroundColor($r('sys.color.comp_background_secondary'))
-            }
-          })
-          .onHover(isHover => {
-            if (!isHover) {
-              this.hoverId = -1
-            }
-            if (isHover) {
-              this.hoverId = 4
+              .backgroundColor($r('sys.color.interactive_pressed'))
             }
           })
           .onClick(() => {
             this.isShowSettingSheet = true
           })
           .bindSheet(this.isShowSettingSheet!!, this.SettingSheetBuilder(), {
-            preferType: this.preferType,
-            onDisappear: async () => {
-              await this.get()
-            }
+            preferType: this.preferType
           })
         }
         .backgroundColor($r('sys.color.comp_background_primary'))
@@ -375,13 +338,13 @@ export default struct Me {
       }
       ListItem()
         .margin({
-          bottom: this.preferType === 0 ? 80 : 0
+          bottom: this.preferType === SheetType.BOTTOM ? 80 : 0
         })
     }
     .padding({
       left: $r('sys.float.ohos_id_elements_margin_horizontal_l'),
       right: $r('sys.float.ohos_id_elements_margin_horizontal_l'),
-      top: this.preferType === 0 ? 0 : $r('sys.float.ohos_id_default_padding_top')
+      top: this.preferType === SheetType.BOTTOM ? 0 : $r('sys.float.ohos_id_default_padding_top')
     })
     .onAppear(async () => {
       this.preferType = getPreferType(this.UIContext)
