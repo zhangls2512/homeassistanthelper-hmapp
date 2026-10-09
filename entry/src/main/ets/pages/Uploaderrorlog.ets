@@ -154,7 +154,7 @@ export default struct Uploaderrorlog {
               dialogControllerProgress.open()
               const res = await developerRequest(this.context, '/product/newErrorLog', {
                 product: 'homeassistanthelper',
-                version: '1.0.1.4',
+                version: '1.0.1.5',
                 errorDesc: this.errorDesc,
                 errorObject: this.uploadErrorObject ? this.errorObject : false,
                 contactType: this.contactType,

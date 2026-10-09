@@ -192,6 +192,9 @@ export default class EntryAbility extends UIAbility {
     const netConnection = connection.createNetConnection()
     netConnection.register(() => {
     })
+    netConnection.on('netConnectionPropertiesChange', async () => {
+      await generateBestAddress(this.context)
+    })
     netConnection.on('netAvailable', async (data) => {
       if (getFlushPreference(context, 'debugSetting', 'showNetAvailableStatusChange', false)) {
         await promptAction.openToast({
@@ -520,7 +523,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   async onContinue(wantParam: Record<string, Object>) {
-    if (wantParam.version !== 11) {
+    if (wantParam.version !== 12) {
       await promptAction.openToast({
         message: '接续失败，原因：目标端应用版本号与发起端不匹配'
       })
