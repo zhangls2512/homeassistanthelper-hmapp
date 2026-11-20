@@ -117,7 +117,7 @@ export default struct Uploaderrorlog {
                 .fontColor($r('sys.color.font_emphasize'))
                 .onClick(async () => {
                   await filePreview.openPreview(this.context, {
-                    title: this.errorObjectFilePath.substring(this.errorObjectFilePath.lastIndexOf('/') + 1),
+                    title: this.errorObjectFilePath.slice(this.errorObjectFilePath.lastIndexOf('/') + 1),
                     uri: fileUri.getUriFromPath(this.errorObjectFilePath),
                     mimeType: ''
                   })
@@ -154,7 +154,7 @@ export default struct Uploaderrorlog {
               dialogControllerProgress.open()
               const res = await developerRequest(this.context, '/product/newErrorLog', {
                 product: 'homeassistanthelper',
-                version: '1.0.1.5',
+                version: '1.0.1.6',
                 errorDesc: this.errorDesc,
                 errorObject: this.uploadErrorObject ? this.errorObject : false,
                 contactType: this.contactType,
