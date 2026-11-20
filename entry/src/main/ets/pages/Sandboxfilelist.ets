@@ -537,7 +537,8 @@ struct Sandboxfilelist {
             }
           }
           .margin({
-            bottom: $r('sys.float.ohos_id_elements_margin_vertical_m')
+            bottom: this.dirnames.length > 0 || this.copyMovePath ? $r('sys.float.ohos_id_elements_margin_vertical_m') :
+              0
           })
           .width('100%')
 
